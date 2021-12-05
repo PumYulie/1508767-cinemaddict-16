@@ -22,7 +22,7 @@ npm i eslint@7.32.0 -DE
 - eslint-config-htmlacademy@5.0.0
 - webpack@5.62.1 //done -E
 - webpack-cli@4.9.1 //done -E
-- webpack-dev-server@4.4.0
+- webpack-dev-server@4.4.0 //done -E
 - @babel/core@7.16.0
 - @babel/plugin-proposal-class-properties@7.16.0
 - @babel/plugin-proposal-nullish-coalescing-operator@7.16.0
