@@ -3,7 +3,8 @@ import {renderSiteMenu} from './view/site-menu.js';
 import {renderFilmsList} from './view/films-list.js';
 import {renderFilmsListItem} from './view/films-list-item.js';
 import {renderShowMoreButton} from './view/show-more-button.js';
-//import {renderPopupWithoutComment} from './view/popup-without-comment.js';
+import {renderPopupWithoutComment} from './view/popup-without-comment.js';
+import {generateFilmObject} from './mock/generate-film-object.js';
 
 const FILM_CARDS_COUNT = 5;
 
@@ -24,4 +25,8 @@ for (let i = 0; i < FILM_CARDS_COUNT; i++) {
 }
 
 renderComponent(mainElement, renderShowMoreButton(), 'beforeend');
-//renderComponent(mainElement, renderPopupWithoutComment(), 'beforeend');
+renderComponent(mainElement, renderPopupWithoutComment(), 'beforeend');
+
+
+const mockFilmObjects = Array.from({length: 15}, generateFilmObject);
+console.log(mockFilmObjects);
