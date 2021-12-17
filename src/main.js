@@ -52,4 +52,4 @@ if (mockFilmObjects.length > FILMS_PER_STEP) {
 }
 
 
-//renderComponent(mainElement, renderPopup(mockFilmObjects[0]), 'beforeend');
+renderComponent(mainElement, renderPopup(mockFilmObjects[0]), 'beforeend');
