@@ -51,4 +51,4 @@ const generateFilmObject = () => {
 };
 
 
-export {generateFilmObject, generateReleaseDate};
+export {generateFilmObject};
