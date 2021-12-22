@@ -1,6 +1,6 @@
 import {createElement} from '../render.js';
-import FilterView from './filter-of-menu.js';
-import SortItemsView from './sort.js';
+import FilterView from './filter-of-menu-view.js';
+//import SortItemsView from './sort-view.js';
 
 
 const renderSiteMenu = (filtersObjects) => {
@@ -8,23 +8,20 @@ const renderSiteMenu = (filtersObjects) => {
     .map((filter) => new FilterView(filter).template)
     .join('');
 
-  const html = `<nav class="main-navigation">
-    <div class="main-navigation__items">
-      <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-      ${renderAllFiltersHTML}
-    </div>
-    <a href="#stats" class="main-navigation__additional">Stats</a>
-  </nav>
-    ${new SortItemsView().template}
-  `;
-  console.log(html); //показывает
-  return html;
+  return `<nav class="main-navigation">
+      <div class="main-navigation__items">
+        <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
+        ${renderAllFiltersHTML}
+      </div>
+      <a href="#stats" class="main-navigation__additional">Stats</a>
+    </nav>`;
 };
 
 
 export default class SiteMenuView {
   #element = null;
   #filtersObjects = null;
+
   constructor(filtersObjects) {
     this.#filtersObjects = filtersObjects;
   }
