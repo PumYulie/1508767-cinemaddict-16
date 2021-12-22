@@ -1,6 +1,5 @@
 import {createElement} from '../render.js';
 import FilterView from './filter-of-menu-view.js';
-//import SortItemsView from './sort-view.js';
 
 
 const renderSiteMenu = (filtersObjects) => {
