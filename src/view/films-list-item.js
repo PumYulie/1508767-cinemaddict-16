@@ -1,7 +1,7 @@
+import {createElement} from '../render.js';
 
 const renderFilmsListItem = (filmObj) => {
   const {name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber} = filmObj;
-
 
   return `<article class="film-card">
     <a class="film-card__link">
@@ -24,4 +24,27 @@ const renderFilmsListItem = (filmObj) => {
   </article>`;
 };
 
-export {renderFilmsListItem};
+export default class FilmListItemView {
+  #element = null;
+  #filmObj = null;
+
+  constructor(filmObj) {
+    this.#filmObj = filmObj;
+  }
+
+  get element() {
+    if(!this.#element) {
+      this.#element = createElement(this.template);
+    }
+    return this.#element;
+  }
+
+  get template() {
+    return renderFilmsListItem(this.#filmObj);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+
+}

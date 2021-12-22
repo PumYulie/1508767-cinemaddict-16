@@ -1,33 +1,46 @@
-
-const renderFilterHTML = (filterObject) => {
-  const {name, count} = filterObject;
-  const nameUppercased = name[0].toUpperCase() + name.slice(1);
-
-  return `
-    <a href="#${name}" class="main-navigation__item">${nameUppercased} <span class="main-navigation__item-count">${count}</span></a>
-  `;
-
-};
+import {createElement} from '../render.js';
+import FilterView from './filter-of-menu.js';
+import SortItemsView from './sort.js';
 
 
 const renderSiteMenu = (filtersObjects) => {
   const renderAllFiltersHTML = filtersObjects
-    .map((filter) => renderFilterHTML(filter))
+    .map((filter) => new FilterView(filter).template)
     .join('');
 
-  return `<nav class="main-navigation">
+  const html = `<nav class="main-navigation">
     <div class="main-navigation__items">
       <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
       ${renderAllFiltersHTML}
     </div>
     <a href="#stats" class="main-navigation__additional">Stats</a>
   </nav>
-
-  <ul class="sort">
-    <li><a href="#" class="sort__button sort__button--active">Sort by default</a></li>
-    <li><a href="#" class="sort__button">Sort by date</a></li>
-    <li><a href="#" class="sort__button">Sort by rating</a></li>
-  </ul>`;
+    ${new SortItemsView().template}
+  `;
+  console.log(html); //показывает
+  return html;
 };
 
-export {renderSiteMenu};
+
+export default class SiteMenuView {
+  #element = null;
+  #filtersObjects = null;
+  constructor(filtersObjects) {
+    this.#filtersObjects = filtersObjects;
+  }
+
+  get element() {
+    if (!this.#element) {
+      this.#element = createElement(this.template);
+    }
+    return this.#element;
+  }
+
+  get template() {
+    return renderSiteMenu(this.#filtersObjects);
+  }
+
+  removeElement() {
+    this.#element = null;
+  }
+}
