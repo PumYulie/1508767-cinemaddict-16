@@ -38,9 +38,6 @@ const renderFilm = (filmListContainer, filmObj) => {
 
     const onCloseFilmPopupClick = () => {
       document.body.classList.remove('hide-overflow');
-
-      filmPopupComponent.element.querySelector('.film-details__close-btn')
-        .removeEventListener('click', onCloseFilmPopupClick);
       document
         .removeEventListener('click', onEscPopupKeyDown);
 
