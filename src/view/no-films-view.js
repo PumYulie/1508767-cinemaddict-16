@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractClassView from './abstract-class-view';
 
 const renderNoTaskHTML = () => (
   `<h2 class="films-list__title">There are no movies in our database</h2>
@@ -12,22 +12,8 @@ const renderNoTaskHTML = () => (
 );
 
 
-export default class NoFilmsView {
-  #element = null;
-
-  get element() {
-    if(!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
+export default class NoFilmsView extends AbstractClassView {
   get template() {
     return renderNoTaskHTML();
   }
-
-  removeElement() {
-    this.#element = null;
-  }
-
 }

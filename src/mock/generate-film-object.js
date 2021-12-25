@@ -1,4 +1,5 @@
-import {getRandomInteger, getRandomFloat, generateValueFromArray, generateArrayFromArray, generateBoolean, generateFilmDescription} from './utils.js';
+import {getRandomInteger, getRandomFloat, generateValueFromArray, generateArrayFromArray, generateBoolean} from '../utils/utils.js';
+import {generateFilmDescription} from './generate-film-description.js';
 import {FILM_NAMES, ORIGINAL_NAMES, COUNTRY, POSTERS, GENRES, DIRECTORS, ACTORS, WRITERS, AGE_FILTERS, DESCRIPTIONS} from './constants.js';
 import {generateCommentsObjects} from './generate-comments-objects.js';
 import dayjs from 'dayjs';

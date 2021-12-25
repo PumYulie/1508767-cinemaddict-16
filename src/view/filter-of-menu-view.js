@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractClassView from './abstract-class-view';
 
 const renderFilterHTML = (filterObject) => {
   const {name, count} = filterObject;
@@ -10,27 +10,15 @@ const renderFilterHTML = (filterObject) => {
 
 };
 
-export default class FilterView {
-  #element = null;
+export default class FilterView extends AbstractClassView {
   #filterObject = null;
 
   constructor(filterObject) {
+    super();
     this.#filterObject = filterObject;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return renderFilterHTML(this.#filterObject);
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
