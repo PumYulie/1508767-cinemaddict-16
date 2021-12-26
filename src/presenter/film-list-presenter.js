@@ -1,5 +1,4 @@
 import {render, cutOffElement, insertElement} from '../utils/render.js';
-
 import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
 import FilmListItemView from '../view/films-list-item-view.js';
@@ -44,7 +43,7 @@ export default class FilmListPresenter {
 
     const onOpenFilmPopupClick = (filmObject) => {
       const filmPopupComponent = new PopupView(filmObject);
-      insertElement(filmPopupComponent);
+      insertElement(filmPopupComponent, filmListContainer);
       document.body.classList.add('hide-overflow');
 
       const onEscPopupKeyDown = (evt) => {

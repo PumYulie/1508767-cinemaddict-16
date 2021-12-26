@@ -50,8 +50,8 @@ const cutOffElement = (componentToRemove) => {
     ? componentToRemove.element
     : componentToRemove;
 
-//Этот вариант с removeChild работал с перебоями. но в старой домашке просили именно removeChild
-/*  const parent = child.parentElement;
+  //Этот вариант с removeChild работал с перебоями. но в старой домашке просили именно removeChild
+  /*  const parent = child.parentElement;
   console.log('parent', parent);
   if (!parent) {
     throw new Error('Tried cuting off DOM а child, but there is no parent element');
