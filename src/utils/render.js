@@ -30,7 +30,7 @@ const createElement = (html) => {
   return newElement.firstChild;
 };
 
-const insertElement = (componentToBeChild) => {
+const insertElement = (componentToBeChild, parent) => {
 //filmListContainer.appendChild(filmPopupComponent.element);
   if (!componentToBeChild) {
     throw new Error('Tried to insert а child, but it is false');
@@ -40,28 +40,25 @@ const insertElement = (componentToBeChild) => {
     ? componentToBeChild.element
     : componentToBeChild;
 
-  const parent = child.parentElement;
-  if (!parent) {
-    throw new Error('Tried to insert а child, but its parent is false');
-  }
-
   parent.appendChild(child);
 
 };
 
 const cutOffElement = (componentToRemove) => {
-  //filmListContainer.removeChild(filmPopupComponent.element); образец
+  //filmListContainer.removeChild(filmPopupComponent.element);
   const child = componentToRemove instanceof AbstractClassView
     ? componentToRemove.element
     : componentToRemove;
 
-  const parent = child.parentElement;
-
+//Этот вариант с removeChild работал с перебоями. но в старой домашке просили именно removeChild
+/*  const parent = child.parentElement;
+  console.log('parent', parent);
   if (!parent) {
     throw new Error('Tried cuting off DOM а child, but there is no parent element');
   }
-
-  parent.removeChild(child);
+ */
+  //parent.removeChild(child);
+  child.remove();
   componentToRemove.removeElement();
 
 };

@@ -24,7 +24,7 @@ const renderFilm = (filmListContainer, filmObj) => {
 
   const onOpenFilmPopupClick = (filmObject) => {
     const filmPopupComponent = new PopupView(filmObject);
-    insertElement(filmPopupComponent);
+    insertElement(filmPopupComponent, filmListContainer);
     document.body.classList.add('hide-overflow');
 
     const onEscPopupKeyDown = (evt) => {
