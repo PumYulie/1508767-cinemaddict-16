@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractClassView from './abstract-class-view';
 
 const renderShowMoreButton = () => (
   `<button class="films-list__show-more">
@@ -6,21 +6,19 @@ const renderShowMoreButton = () => (
   </button>`
 );
 
-export default class ShowMoreButtonView {
-  #element = null;
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
+export default class ShowMoreButtonView extends AbstractClassView {
   get template() {
     return renderShowMoreButton();
   }
 
-  removeElement() {
-    this.#element = null;
+  setOnClickhandler = (someCallback) => {
+    this._callback.showMoreButtonClick = someCallback; //создаю метод в объекте, тк это объект был
+    this.element.addEventListener('click', this.#onCLickHandler);
   }
+
+  #onCLickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.showMoreButtonClick();
+  }
+
 }

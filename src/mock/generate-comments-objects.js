@@ -1,5 +1,5 @@
 import {EMOJIS, COMMENT_AUTHORS, COMMENT_MESSAGES} from './constants.js';
-import {getRandomInteger, generateValueFromArray} from './utils.js';
+import {getRandomInteger, generateValueFromArray} from '../utils/utils.js';
 import dayjs from 'dayjs';
 
 

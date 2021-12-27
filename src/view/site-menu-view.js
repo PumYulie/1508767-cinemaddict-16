@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractClassView from './abstract-class-view';
 import FilterView from './filter-of-menu-view.js';
 
 
@@ -17,26 +17,15 @@ const renderSiteMenu = (filtersObjects) => {
 };
 
 
-export default class SiteMenuView {
-  #element = null;
+export default class SiteMenuView extends AbstractClassView{
   #filtersObjects = null;
 
   constructor(filtersObjects) {
+    super();
     this.#filtersObjects = filtersObjects;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
   }
 
   get template() {
     return renderSiteMenu(this.#filtersObjects);
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

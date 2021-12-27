@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractClassView from './abstract-class-view';
 
 const renderFilmsListItem = (filmObj) => {
   const {name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber} = filmObj;
@@ -24,27 +24,26 @@ const renderFilmsListItem = (filmObj) => {
   </article>`;
 };
 
-export default class FilmListItemView {
-  #element = null;
+export default class FilmListItemView extends AbstractClassView {
   #filmObj = null;
 
   constructor(filmObj) {
+    super();
     this.#filmObj = filmObj;
-  }
-
-  get element() {
-    if(!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
   }
 
   get template() {
     return renderFilmsListItem(this.#filmObj);
   }
 
-  removeElement() {
-    this.#element = null;
+  setOnPosterClick = (someCallback) => {
+    this._callback.onPosterClick = someCallback;
+    this.element
+      .querySelector('.film-card__link')
+      .addEventListener('click', this.#onPosterClick);
   }
 
+  #onPosterClick = () => {
+    this._callback.onPosterClick();
+  }
 }
