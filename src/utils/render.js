@@ -1,10 +1,11 @@
 import AbstractClassView from '../view/abstract-class-view.js';
 
+const getElementPropIfAny = (param) => param instanceof AbstractClassView ? param.element : param;
+
 //отрисовываю DOM-элемент в разметку
 const render = (container, element, place) => {
-  //если делала от абстрактного класса, то лежит какая-то хрень, а DOM-элемент из нее можно получить по свойству .element как раз
-  const parent = container instanceof AbstractClassView ? container.element : container;
-  const child = element instanceof AbstractClassView ? element.element : element;
+  const parent = getElementPropIfAny(container);
+  const child = getElementPropIfAny(element);
 
   switch(place) {
     case 'beforebegin':
@@ -22,7 +23,6 @@ const render = (container, element, place) => {
   }
 };
 
-//превращаю разметку в элемент и возвращаю ЭЛЕМЕНТ!
 const createElement = (html) => {
   const newElement = document.createElement('div');
   newElement.innerHTML = html;
@@ -35,31 +35,27 @@ const insertElement = (componentToBeChild, parent) => {
     throw new Error('Tried to insert а child, but it is false');
   }
 
-  const child = componentToBeChild instanceof AbstractClassView
-    ? componentToBeChild.element
-    : componentToBeChild;
-
+  const child = getElementPropIfAny(componentToBeChild);
   parent.appendChild(child);
-
 };
 
 const cutOffElement = (componentToRemove) => {
   //filmListContainer.removeChild(filmPopupComponent.element);
-  const child = componentToRemove instanceof AbstractClassView
-    ? componentToRemove.element
-    : componentToRemove;
+  const child = getElementPropIfAny(componentToRemove);
 
-  //Этот вариант с removeChild работал с перебоями. но в старой домашке просили именно removeChild
-  /*  const parent = child.parentElement;
-  console.log('parent', parent);
-  if (!parent) {
-    throw new Error('Tried cuting off DOM а child, but there is no parent element');
-  }
- */
-  //parent.removeChild(child);
   child.remove();
   componentToRemove.removeElement();
-
 };
 
-export {render, createElement, cutOffElement, insertElement};
+const replaceElement = (elemToRemove, newElem) => {
+  if (!elemToRemove || newElem) {
+    throw new Error('failed to replace DOM-element: some of elements don\'t exist');
+  }
+
+  const oldElement = getElementPropIfAny(elemToRemove);
+  const newElement = getElementPropIfAny(newElem);
+
+  oldElement.replaceWith(newElement);
+};
+
+export {render, createElement, cutOffElement, insertElement, replaceElement};

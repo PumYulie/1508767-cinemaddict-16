@@ -38,7 +38,6 @@ export default class FilmListPresenter {
 
 
   #renderFilm = (filmListContainer, filmObj) => {
-    //const filmPresenter = new FilmPresenter(this.#filmsListComponent); - или так??
     const filmPresenter = new FilmPresenter(filmListContainer);
     filmPresenter.init(filmObj);
   }

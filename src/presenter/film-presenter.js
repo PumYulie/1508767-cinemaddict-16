@@ -1,6 +1,6 @@
 import FilmListItemView from '../view/films-list-item-view.js';
 import PopupView from '../view/popup-view.js';
-import {render, cutOffElement, insertElement} from '../utils/render.js';
+import {render, cutOffElement, insertElement, replaceElement} from '../utils/render.js';
 
 export default class FilmPresenter {
   #filmComponent = null;
@@ -14,12 +14,33 @@ export default class FilmPresenter {
 
   init = (filmObj) => {
     this.#filmObj = filmObj;
-    this.#filmComponent = new FilmListItemView(this.#filmObj);
 
-    //В строке ниже проблема. первая из типовых проблем.
-    //чтото не то я делаю с обработчикаами. этот вписан через =>, другие просто this.#onEscPopupKeyDown(), но и так и так не работает
+    //для задачи самообновиться. сначала фиксирую старое, если было. и затемобновляю свойство актуальным контентом
+    const prevFilmComponent = this.#filmComponent;
+    const prevFilmPopupComponent = this.#filmPopupComponent;
+
+    this.#filmComponent = new FilmListItemView(this.#filmObj);
     this.#filmComponent.setOnPosterClick(this.#onOpenFilmPopupClick);
-    render(this.#filmListContainer, this.#filmComponent, 'beforeend');
+
+    //если не было старого - просто рендерю, что просили
+    if (prevFilmComponent === null || prevFilmPopupComponent) {
+      render(this.#filmListContainer, this.#filmComponent, 'beforeend');
+      return;
+    }
+
+    //если старое было в DOM(проверяю нарверняка), то сначала меняю старое на новое
+    if (this.#filmListContainer.element.contains(prevFilmComponent)) {
+      replaceElement(prevFilmComponent, this.#filmComponent);
+    }
+    // но в целом старое убираю
+    cutOffElement(prevFilmComponent);
+    cutOffElement(prevFilmPopupComponent);
+
+  }
+
+  deleteFilm = () => {
+    cutOffElement(this.#filmComponent);
+    cutOffElement(this.#filmPopupComponent);
   }
 
   #onOpenFilmPopupClick = () => {
@@ -33,7 +54,6 @@ export default class FilmPresenter {
     this.#filmComponent.element
       .querySelector('.film-card__link')
       .removeEventListener('click', this.#onOpenFilmPopupClick);
-    //.removeEventListener('click', () => this.#onOpenFilmPopupClick(this.#filmObj));
   };
 
   #onEscPopupKeyDown = (evt) => {

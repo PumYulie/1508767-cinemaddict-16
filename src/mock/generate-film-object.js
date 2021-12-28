@@ -3,6 +3,7 @@ import {generateFilmDescription} from './generate-film-description.js';
 import {FILM_NAMES, ORIGINAL_NAMES, COUNTRY, POSTERS, GENRES, DIRECTORS, ACTORS, WRITERS, AGE_FILTERS, DESCRIPTIONS} from './constants.js';
 import {generateCommentsObjects} from './generate-comments-objects.js';
 import dayjs from 'dayjs';
+import {nanoid} from 'nanoid';
 
 
 const generateReleaseDate = () => {
@@ -25,6 +26,7 @@ const generateFilmObject = () => {
   const commentObjects = generateCommentsObjects(numberOfCommets);
 
   return {
+    id: nanoid(),
     name: generateValueFromArray(FILM_NAMES),
     poster: generateValueFromArray(POSTERS),
     rating: getRandomFloat(),
