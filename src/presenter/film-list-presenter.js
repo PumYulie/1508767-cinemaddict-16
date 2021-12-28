@@ -1,12 +1,11 @@
-import {render, cutOffElement, insertElement} from '../utils/render.js';
+import {render, cutOffElement} from '../utils/render.js';
 import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
-import FilmListItemView from '../view/films-list-item-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
-import PopupView from '../view/popup-view.js';
 import NoFilmsView from '../view/no-films-view.js';
+import {FILM_CARDS_COUNT} from '../main.js';
+import FilmPresenter from './film-presenter.js';
 
-const FILM_CARDS_COUNT = 6;
 const FILMS_PER_STEP = 5;
 
 export default class FilmListPresenter {
@@ -14,32 +13,37 @@ export default class FilmListPresenter {
   #filmBoardContainer = null;
 
   #filmsListComponent = new FilmListView();
-  #filmsListContainer = this.#filmsListComponent.element.querySelector('.films-list__container');//или это в конструктор отправить???
+  #filmsListContainer = this.#filmsListComponent.element.querySelector('.films-list__container');
   #showMoreButtonComponent = new ShowMoreButtonView();
   #noFilmsComponent = new NoFilmsView();
   #sortItemsComponent = new SortItemsView();
+  #renderedFilmCards = FILMS_PER_STEP;
 
   constructor(filmBoardContainer) {
     this.#filmBoardContainer = filmBoardContainer;
   }
 
   init = (filmObjects) => {
-    this.#filmObjects = [...filmObjects]; //взяла массив, распаковала на элементы и снова запаковала в новый массив
+    this.#filmObjects = [...filmObjects];
 
-    if (filmObjects.length === 0) {
+    if (this.#filmObjects.length === 0) {
       this.#renderNoFilm();
     } else {
       this.#renderSort();
       this.#renderFilmListContainer();
 
-      this.#renderFilmList(); // ПРОВЕРЬ НА АРГУМЕНТЫ!!
-
-
+      this.#renderFilmList();
     }
   }
 
+
   #renderFilm = (filmListContainer, filmObj) => {
-    const filmComponent = new FilmListItemView(filmObj);
+    //const filmPresenter = new FilmPresenter(this.#filmsListComponent); - или так??
+    const filmPresenter = new FilmPresenter(filmListContainer);
+    filmPresenter.init(filmObj);
+  }
+  //#renderFilm = (filmListContainer, filmObj) => {
+  /*const filmComponent = new FilmListItemView(filmObj);
 
     const onOpenFilmPopupClick = (filmObject) => {
       const filmPopupComponent = new PopupView(filmObject);
@@ -68,10 +72,11 @@ export default class FilmListPresenter {
     };
 
     filmComponent.setOnPosterClick(() => onOpenFilmPopupClick(filmObj));
-    render(filmListContainer, filmComponent, 'beforeend');
-  }
+    render(filmListContainer, filmComponent, 'beforeend'); */
+  //}
 
-  #renderFilmsAboveButton = (from, to) => { // n-фильмов за раз рендерит. по 5 фильмов
+
+  #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
       .slice(from, to)
       .forEach((item) => this.#renderFilm(this.#filmsListComponent, item));
@@ -83,7 +88,7 @@ export default class FilmListPresenter {
     }
 
     if (this.#filmObjects.length > FILMS_PER_STEP) {
-      this.#renderLogicShowMoreButton();
+      this.#renderShowMoreButton();
     }
   }
 
@@ -97,23 +102,16 @@ export default class FilmListPresenter {
 
   #renderShowMoreButton = () => {
     render(this.#filmBoardContainer, this.#showMoreButtonComponent, 'beforeend');
+    this.#showMoreButtonComponent.setOnClickhandler(() =>  this.#onShowMoreButtonClick());
   }
 
-  #renderLogicShowMoreButton = () => {
-    let renderedFilmCards = FILMS_PER_STEP;
+  #onShowMoreButtonClick = () => {
+    this.#renderFilmsAboveButton(this.#renderedFilmCards, this.#renderedFilmCards + FILMS_PER_STEP);
+    this.#renderedFilmCards += FILMS_PER_STEP;
 
-    this.#renderShowMoreButton();
-
-    this.#showMoreButtonComponent.setOnClickhandler(() => {
-      this.#renderFilmsAboveButton(renderedFilmCards, renderedFilmCards + FILMS_PER_STEP);
-
-      renderedFilmCards += FILMS_PER_STEP;
-
-      if (renderedFilmCards >= this.#filmObjects.length) {
-        this.#showMoreButtonComponent.element.remove();
-        this.#showMoreButtonComponent.removeElement();
-      }
-    });
+    if (this.#renderedFilmCards >= this.#filmObjects.length) {
+      cutOffElement(this.#showMoreButtonComponent);
+    }
   }
 
   #renderNoFilm = () => {

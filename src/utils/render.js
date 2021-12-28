@@ -23,7 +23,6 @@ const render = (container, element, place) => {
 };
 
 //превращаю разметку в элемент и возвращаю ЭЛЕМЕНТ!
-//вспомогательная для render, тк ей нужен DOM-элемент!!!
 const createElement = (html) => {
   const newElement = document.createElement('div');
   newElement.innerHTML = html;

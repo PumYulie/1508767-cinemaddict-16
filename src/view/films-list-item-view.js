@@ -36,8 +36,8 @@ export default class FilmListItemView extends AbstractClassView {
     return renderFilmsListItem(this.#filmObj);
   }
 
-  setOnPosterClick = (someCallback) => {
-    this._callback.onPosterClick = someCallback;
+  setOnPosterClick = (сallback) => {
+    this._callback.onPosterClick = сallback;
     this.element
       .querySelector('.film-card__link')
       .addEventListener('click', this.#onPosterClick);
