@@ -18,7 +18,7 @@ export default class FilmPresenter {
 
     //В строке ниже проблема. первая из типовых проблем.
     //чтото не то я делаю с обработчикаами. этот вписан через =>, другие просто this.#onEscPopupKeyDown(), но и так и так не работает
-    this.#filmComponent.setOnPosterClick(() => this.#onOpenFilmPopupClick());
+    this.#filmComponent.setOnPosterClick(this.#onOpenFilmPopupClick);
     render(this.#filmListContainer, this.#filmComponent, 'beforeend');
   }
 
@@ -27,12 +27,12 @@ export default class FilmPresenter {
     insertElement(this.#filmPopupComponent, this.#filmListContainer);
     document.body.classList.add('hide-overflow');
 
-    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick());
-    document.addEventListener('keydown', this.#onEscPopupKeyDown());
+    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
+    document.addEventListener('keydown', this.#onEscPopupKeyDown);
 
     this.#filmComponent.element
       .querySelector('.film-card__link')
-      .removeEventListener('click', this.#onOpenFilmPopupClick());
+      .removeEventListener('click', this.#onOpenFilmPopupClick);
     //.removeEventListener('click', () => this.#onOpenFilmPopupClick(this.#filmObj));
   };
 
@@ -40,13 +40,13 @@ export default class FilmPresenter {
     if(evt.key === 'Escape' || evt.key === 'Esc') {
       document.body.classList.remove('hide-overflow');
       cutOffElement(this.#filmPopupComponent);
-      document.removeEventListener('click', this.#onEscPopupKeyDown());
+      document.removeEventListener('click', this.#onEscPopupKeyDown);
     }
   };
 
   #onCloseFilmPopupClick = () => {
     document.body.classList.remove('hide-overflow');
     cutOffElement(this.#filmPopupComponent);
-    document.removeEventListener('click', this.#onEscPopupKeyDown());
+    document.removeEventListener('click', this.#onEscPopupKeyDown);
   };
 }

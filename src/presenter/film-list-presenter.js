@@ -102,7 +102,7 @@ export default class FilmListPresenter {
 
   #renderShowMoreButton = () => {
     render(this.#filmBoardContainer, this.#showMoreButtonComponent, 'beforeend');
-    this.#showMoreButtonComponent.setOnClickhandler(() =>  this.#onShowMoreButtonClick());
+    this.#showMoreButtonComponent.setOnClickhandler(this.#onShowMoreButtonClick);
   }
 
   #onShowMoreButtonClick = () => {
