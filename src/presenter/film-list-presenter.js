@@ -6,6 +6,9 @@ import NoFilmsView from '../view/no-films-view.js';
 import {FILM_CARDS_COUNT} from '../main.js';
 import FilmPresenter from './film-presenter.js';
 
+import FilmListItemView from '../view/films-list-item-view.js';
+import PopupView from '../view/popup-view.js';
+
 const FILMS_PER_STEP = 5;
 
 export default class FilmListPresenter {
@@ -41,8 +44,9 @@ export default class FilmListPresenter {
     const filmPresenter = new FilmPresenter(filmListContainer);
     filmPresenter.init(filmObj);
   }
-  //#renderFilm = (filmListContainer, filmObj) => {
-  /*const filmComponent = new FilmListItemView(filmObj);
+    //#renderFilm = (filmListContainer, filmObj) => {
+
+/*     const filmComponent = new FilmListItemView(filmObj);
 
     const onOpenFilmPopupClick = (filmObject) => {
       const filmPopupComponent = new PopupView(filmObject);
@@ -71,8 +75,8 @@ export default class FilmListPresenter {
     };
 
     filmComponent.setOnPosterClick(() => onOpenFilmPopupClick(filmObj));
-    render(filmListContainer, filmComponent, 'beforeend'); */
-  //}
+    render(filmListContainer, filmComponent, 'beforeend');
+  } */
 
 
   #renderFilmsAboveButton = (from, to) => {
@@ -82,9 +86,11 @@ export default class FilmListPresenter {
   }
 
   #renderFilmList = () => { //вместо функции renderFilmBoard
-    for (let i = 0; i < Math.min(FILM_CARDS_COUNT, FILMS_PER_STEP); i++) {
+    /* for (let i = 0; i < Math.min(FILM_CARDS_COUNT, FILMS_PER_STEP); i++) {
       this.#renderFilm(this.#filmsListContainer, this.#filmObjects[i]);
-    }
+    } */
+
+    this.#renderFilmsAboveButton(FILM_CARDS_COUNT, this.#renderedFilmCards);
 
     if (this.#filmObjects.length > FILMS_PER_STEP) {
       this.#renderShowMoreButton();
