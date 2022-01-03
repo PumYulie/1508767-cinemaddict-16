@@ -5,7 +5,7 @@ import {generateFilmObject} from './mock/generate-film-object.js';
 import {generateFilterObject} from './mock/generate-filters.js';
 import FilmListPresenter from './presenter/film-list-presenter.js';
 
-const FILM_CARDS_COUNT = 6;
+const FILM_CARDS_COUNT = 4;
 
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');

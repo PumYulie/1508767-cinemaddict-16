@@ -3,13 +3,14 @@ import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
 import NoFilmsView from '../view/no-films-view.js';
-import {FILM_CARDS_COUNT} from '../main.js';
 import FilmPresenter from './film-presenter.js';
 
-const FILMS_PER_STEP = 5;
+const FILMS_PER_STEP = 3;
 
 export default class FilmListPresenter {
   #filmObjects = [];
+  #renderedFilmCards = FILMS_PER_STEP;
+
   #filmBoardContainer = null;
 
   #filmsListComponent = new FilmListView();
@@ -17,7 +18,8 @@ export default class FilmListPresenter {
   #showMoreButtonComponent = new ShowMoreButtonView();
   #noFilmsComponent = new NoFilmsView();
   #sortItemsComponent = new SortItemsView();
-  #renderedFilmCards = FILMS_PER_STEP;
+
+  #filmPresenter = new Map();
 
   constructor(filmBoardContainer) {
     this.#filmBoardContainer = filmBoardContainer;
@@ -40,56 +42,31 @@ export default class FilmListPresenter {
   #renderFilm = (filmListContainer, filmObj) => {
     const filmPresenter = new FilmPresenter(filmListContainer);
     filmPresenter.init(filmObj);
+    //докидываю в общий Map(this.#filmPresenter)в формате { id: filmPresenter, id: filmPresenter, ...}
+    this.#filmPresenter.set(filmObj.id, filmPresenter);
   }
-  //#renderFilm = (filmListContainer, filmObj) => {
-  /*const filmComponent = new FilmListItemView(filmObj);
 
-    const onOpenFilmPopupClick = (filmObject) => {
-      const filmPopupComponent = new PopupView(filmObject);
-      insertElement(filmPopupComponent, filmListContainer);
-      document.body.classList.add('hide-overflow');
-
-      const onEscPopupKeyDown = (evt) => {
-        if(evt.key === 'Escape' || evt.key === 'Esc') {
-          document.body.classList.remove('hide-overflow');
-          cutOffElement(filmPopupComponent);
-          document.removeEventListener('click', onEscPopupKeyDown);
-        }
-      };
-
-      const onCloseFilmPopupClick = () => {
-        document.body.classList.remove('hide-overflow');
-        cutOffElement(filmPopupComponent);
-        document.removeEventListener('click', onEscPopupKeyDown);
-      };
-
-      filmPopupComponent.setOnCloseBtnClick(onCloseFilmPopupClick);
-      document.addEventListener('keydown', onEscPopupKeyDown);
-
-      filmComponent.element.querySelector('.film-card__link')
-        .removeEventListener('click', () => onOpenFilmPopupClick(filmObj));
-    };
-
-    filmComponent.setOnPosterClick(() => onOpenFilmPopupClick(filmObj));
-    render(filmListContainer, filmComponent, 'beforeend'); */
-  //}
-
-
+  //проверить мб this.#filmsListContainer достаточно и без #filmsListComponent
   #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
       .slice(from, to)
-      .forEach((item) => this.#renderFilm(this.#filmsListComponent, item));
+      .forEach((item) => this.#renderFilm(this.#filmsListContainer, item));
   }
 
-  #renderFilmList = () => { //вместо функции renderFilmBoard
-    for (let i = 0; i < Math.min(FILM_CARDS_COUNT, FILMS_PER_STEP); i++) {
-      this.#renderFilm(this.#filmsListContainer, this.#filmObjects[i]);
-    }
+  #renderFilmList = () => { //вместо renderFilmBoard. вставляю li-шки фильмов
+    this.#renderFilmsAboveButton(0, Math.min(this.#filmObjects.length, FILMS_PER_STEP));
 
     if (this.#filmObjects.length > FILMS_PER_STEP) {
       this.#renderShowMoreButton();
     }
   }
+
+  #clearFilmList = () => {
+    this.#filmPresenter.forEach((value) => value.deleteFilm());//удаляю из DOM
+    this.#filmPresenter.clear(); //чищу мар от начинки
+    this.#renderedFilmCards = FILMS_PER_STEP;
+    cutOffElement(this.#showMoreButtonComponent);
+  };
 
   #renderFilmListContainer = () => { //рисую ul для карточек фильмов
     render(this.#filmBoardContainer, this.#filmsListComponent, 'beforeend');
