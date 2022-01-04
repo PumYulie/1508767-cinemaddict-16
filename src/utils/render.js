@@ -29,13 +29,14 @@ const createElement = (html) => {
   return newElement.firstChild;
 };
 
-const insertElement = (componentToBeChild, parent) => {
+const insertElement = (componentToBeChild, componentToBeParent) => {
 //filmListContainer.appendChild(filmPopupComponent.element);
   if (!componentToBeChild) {
     throw new Error('Tried to insert а child, but it is false');
   }
 
   const child = getElementPropIfAny(componentToBeChild);
+  const parent = getElementPropIfAny(componentToBeParent);
   parent.appendChild(child);
 };
 
@@ -48,7 +49,7 @@ const cutOffElement = (componentToRemove) => {
 };
 
 const replaceElement = (elemToRemove, newElem) => {
-  if (!elemToRemove || newElem) {
+  if (!elemToRemove || !newElem) {
     throw new Error('failed to replace DOM-element: some of elements don\'t exist');
   }
 

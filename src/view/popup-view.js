@@ -184,4 +184,36 @@ export default class PopupView extends AbstractClassView {
     this._callback.onCloseBtnClick();
   }
 
+
+  setToWatchlistClickHandler = (callback) => {
+    this._callback.toWatchlistClickHandler = callback;
+    this.element.querySelector('.film-details__control-button--watchlist')
+      .addEventListener('click', this.#toWatchlistClickHandler);
+  }
+
+  #toWatchlistClickHandler = () => {
+    this._callback.toWatchlistClickHandler();
+  }
+
+
+  setToHistoryClickHandler = (callback) => {
+    this._callback.toHistoryClickHandler = callback;
+    this.element.querySelector('.film-details__control-button--watched')
+      .addEventListener('click', this.#toHistoryClickHandler);
+  }
+
+  #toHistoryClickHandler = () => {
+    this._callback.toHistoryClickHandler();
+  }
+
+
+  setToFavoritesClickHandler = (callback) => {
+    this._callback.toFavoritesClickHandler = callback;
+    this.element.querySelector('.film-details__control-button--favorite')
+      .addEventListener('click', this.#toFavoritesClickHandler);
+  };
+
+  #toFavoritesClickHandler = () => {
+    this._callback.toFavoritesClickHandler();
+  };
 }
