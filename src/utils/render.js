@@ -30,7 +30,6 @@ const createElement = (html) => {
 };
 
 const insertElement = (componentToBeChild, componentToBeParent) => {
-//filmListContainer.appendChild(filmPopupComponent.element);
   if (!componentToBeChild) {
     throw new Error('Tried to insert а child, but it is false');
   }
@@ -41,7 +40,6 @@ const insertElement = (componentToBeChild, componentToBeParent) => {
 };
 
 const cutOffElement = (componentToRemove) => {
-  //filmListContainer.removeChild(filmPopupComponent.element);
   const child = getElementPropIfAny(componentToRemove);
 
   child.remove();

@@ -132,9 +132,7 @@ export default class FilmListPresenter {
     }
   }
 
-  //запускать этот метод, если ивент таргет равен 1 из 3 кнопок у ПОПАПА
   #handleFilmPosterClick = (filmObject) => {
-    console.log('#handleFilmPosterClick отработал');
 
     if (this.#filmPopupComponent) {
       //console.log('закрываю попап');//ПОЧЕМУ БЕЗ IF ДАЕТ ОШИБКУ??, хотя консль срабатывает в 100% случаев, т.е.this.#filmPopupComponent всегда существует
