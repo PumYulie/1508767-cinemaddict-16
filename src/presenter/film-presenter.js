@@ -43,6 +43,7 @@ export default class FilmPresenter {
     cutOffElement(this.#filmPopupComponent);
   }
 
+
   #onOpenFilmPopupClick = () => {
     this.#filmPopupComponent = new PopupView(this.#filmObj);
     insertElement(this.#filmPopupComponent, this.#filmListContainer);
