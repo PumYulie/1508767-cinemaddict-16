@@ -134,6 +134,8 @@ export default class FilmListPresenter {
 
   //запускать этот метод, если ивент таргет равен 1 из 3 кнопок у ПОПАПА
   #handleFilmPosterClick = (filmObject) => {
+    console.log('#handleFilmPosterClick отработал');
+
     if (this.#filmPopupComponent) {
       //console.log('закрываю попап');//ПОЧЕМУ БЕЗ IF ДАЕТ ОШИБКУ??, хотя консль срабатывает в 100% случаев, т.е.this.#filmPopupComponent всегда существует
       cutOffElement(this.#filmPopupComponent);
@@ -145,11 +147,9 @@ export default class FilmListPresenter {
     document.addEventListener('keydown', this.#onEscPopupKeyDown);
     this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
 
-    //пробую вставить evt сюда, но что с ним дальше делать не знаю
-    //setToWatchlistClickHandler и подобные = методы у popup-view.js
-    this.#filmPopupComponent.setToWatchlistClickHandler((evt) => this.#handleToWatchlistClick(filmObject));
-    this.#filmPopupComponent.setToHistoryClickHandler((evt) => this.#handleToHistoryClick(filmObject));
-    this.#filmPopupComponent.setToFavoritesClickHandler((evt) => this.#handleToFavoritesClick(filmObject));
+    this.#filmPopupComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject, true));
+    this.#filmPopupComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject, true));
+    this.#filmPopupComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject, true));
 
     this.#filmComponent.element.querySelector('.film-card__link')
     //как проверить, снимается ли этот обработчик без аргумента??та же ли функция??
@@ -170,23 +170,34 @@ export default class FilmListPresenter {
     }
   };
 
-  //божечки надеюсь оно так вообще работает...
-  //выдаю актуальный после изменений массив объектов фильмов и рендерб тот фильм, что изменился
-  #handleFilmChange = (updatedFilm) => {
+
+  //актуализирую массив объектов фильмов и рендерю тот фильм, что изменился
+  #handleFilmChange = (updatedFilm, isPopup) => {
     this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
     this.#renderFilm(updatedFilm);
+
+    //почему кнопки в консоли идентичные, а сравнение false?
+    //console.log(evt.target);
+    //console.log(this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite'));
+    //console.log(evt.target === this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite')); // false - тк объект новый а ивент таргет от старого объекта???
+
+    if (isPopup) {
+      this.#handleFilmPosterClick(updatedFilm);
+    }
   };
 
-  //обрабатываю изменения в мелкой карточке фильма когда приходят новые данные по фильму
-  #handleToWatchlistClick = (filmObject) => {
-    this.#handleFilmChange({...filmObject, inWatchList: !filmObject.inWatchList});
+  #handleToWatchlistClick = (filmObject, isPopup) => {
+    const updatedObject = {...filmObject, inWatchList: !filmObject.inWatchList};
+    this.#handleFilmChange(updatedObject, isPopup);
   };
 
-  #handleToHistoryClick = (filmObject) => {
-    this.#handleFilmChange({...filmObject, alreadyWatched: !filmObject.alreadyWatched});
+  #handleToHistoryClick = (filmObject, isPopup) => {
+    const updatedObject = {...filmObject, alreadyWatched: !filmObject.alreadyWatched};
+    this.#handleFilmChange(updatedObject, isPopup);
   };
 
-  #handleToFavoritesClick = (filmObject) => {
-    this.#handleFilmChange({...filmObject, inFavorites: !filmObject.inFavorites});
+  #handleToFavoritesClick = (filmObject, isPopup) => {
+    const updatedObject = {...filmObject, inFavorites: !filmObject.inFavorites};
+    this.#handleFilmChange(updatedObject, isPopup);
   };
 }
