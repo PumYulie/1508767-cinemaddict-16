@@ -29,5 +29,19 @@ const generateArrayFromArray = (array, percent) => {
 
 const generateBoolean = () => Boolean(getRandomInteger(0, 1));
 
+//возвращает массив актуальных моковых объектов фильмов
+const updateItem = (items, update) => {
+  const index = items.findIndex((item) => item.id === update.id);
 
-export {getRandomInteger, getRandomFloat, generateValueFromArray, generateArrayFromArray, generateBoolean};
+  if (index === -1) {
+    return items;
+  }
+
+  return [
+    ...items.slice(0, index),
+    update,
+    ...items.slice(index + 1),
+  ];
+};
+
+export {updateItem, getRandomInteger, getRandomFloat, generateValueFromArray, generateArrayFromArray, generateBoolean};
