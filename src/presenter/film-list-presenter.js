@@ -82,10 +82,10 @@ export default class FilmListPresenter {
 
   }
 
-  #deleteFilm = () => {
+/*   #deleteFilm = () => {
     cutOffElement(this.#filmComponent);
     cutOffElement(this.#filmPopupComponent);
-  }
+  } */
 
   #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
