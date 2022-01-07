@@ -121,3 +121,9 @@ export const DESCRIPTIONS = [
   'Nunc fermentum tortor ac porta dapibus.',
   'In rutrum ac purus sit amet tempus.'
 ];
+
+export const SortType = {
+  DEFAULT: 'default',
+  BY_DATE: 'by-date',
+  BY_RATING: 'by-rating',
+};

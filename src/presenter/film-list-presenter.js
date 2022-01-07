@@ -1,11 +1,11 @@
 import {render, cutOffElement, insertElement, replaceElement} from '../utils/render.js';
 import {updateItem} from '../utils/utils.js';
+import {SortType} from '../mock/constants.js';
+import {sortByDateFirstNewest, sortByRatingFirstHighest} from '../utils/film-functions.js';
 import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
 import NoFilmsView from '../view/no-films-view.js';
-//import {FILM_CARDS_COUNT} from '../main.js';
-//import FilmPresenter from './film-presenter.js';
 
 import FilmListItemView from '../view/films-list-item-view.js';
 import PopupView from '../view/popup-view.js';
@@ -16,6 +16,8 @@ export default class FilmListPresenter {
   #filmObjects = [];
   #renderedFilmCards = FILMS_PER_STEP;
   #filmIdInstance = new Map();
+  #currentSortType = SortType.DEFAULT;
+  #initialFilmObjects = [];
 
   #filmBoardContainer = null;
   #filmComponent = null;
@@ -34,6 +36,7 @@ export default class FilmListPresenter {
 
   init = (filmObjects) => {
     this.#filmObjects = [...filmObjects];
+    this.#initialFilmObjects = [...filmObjects];//сохранила массив объектов ДО сортировки
 
     if (this.#filmObjects.length === 0) {
       this.#renderNoFilm();
@@ -57,7 +60,6 @@ export default class FilmListPresenter {
     this.#filmComponent = new FilmListItemView(filmObj);
     this.#filmIdInstance.set(filmObj.id, this.#filmComponent);
 
-    //навешиваю слушатели, чтобы по кнопкам мелкого фильма кликать
     this.#filmComponent.setOnPosterClickHandler(() => this.#handleFilmPosterClick(filmObj));
     this.#filmComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObj));
     this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObj));
@@ -85,14 +87,13 @@ export default class FilmListPresenter {
     cutOffElement(this.#filmPopupComponent);
   }
 
-  //проверить мб this.#filmsListContainer достаточно и без #filmsListComponent
   #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
       .slice(from, to)
       .forEach((item) => this.#renderFilm(item)); //удалила первый аргумент this.#filmsListComponent
   }
 
-  #renderFilmList = () => { //вместо функции renderFilmBoard
+  #renderFilmList = () => {
     this.#renderFilmsAboveButton(0, Math.min(this.#filmObjects.length, FILMS_PER_STEP));
 
     if (this.#filmObjects.length > FILMS_PER_STEP) {
@@ -100,9 +101,9 @@ export default class FilmListPresenter {
     }
   }
 
-  #clearFilmList = () => { // в value у мар лежат тела отдельных компонентов фильмов, а в ключах айди этих фильмов
-    this.#filmIdInstance.forEach((mapValue) => mapValue.this.#deleteFilm());
-    this.#filmIdInstance.clear();//убрав сами компоненты, очищаю мар от их следов
+  #clearFilmList = () => {
+    this.#filmIdInstance.forEach((mapValue) => mapValue.element.remove());
+    this.#filmIdInstance.clear();
     this.#renderedFilmCards = FILMS_PER_STEP;
     cutOffElement(this.#showMoreButtonComponent);
   };
@@ -113,6 +114,7 @@ export default class FilmListPresenter {
 
   #renderSort = () => {
     render(this.#filmBoardContainer, this.#sortItemsComponent, 'beforeend');
+    this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
   }
 
   #renderNoFilm = () => {
@@ -170,9 +172,10 @@ export default class FilmListPresenter {
   };
 
 
-  //актуализирую массив объектов фильмов и рендерю тот фильм, что изменился
+  //актуализирую массив объектов фильмов и рендерю тот фильм(+попап если был), что изменился
   #handleFilmChange = (updatedFilm, isPopup) => {
     this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
+    this.#initialFilmObjects = updateItem(this.#initialFilmObjects, updatedFilm);
     this.#renderFilm(updatedFilm);
 
     //почему кнопки в консоли идентичные, а сравнение false?
@@ -180,9 +183,7 @@ export default class FilmListPresenter {
     //console.log(this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite'));
     //console.log(evt.target === this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite')); // false - тк объект новый а ивент таргет от старого объекта???
 
-    if (isPopup) {
-      this.#handleFilmPosterClick(updatedFilm);
-    }
+    if (isPopup) { this.#handleFilmPosterClick(updatedFilm); }
   };
 
   #handleToWatchlistClick = (filmObject, isPopup) => {
@@ -198,5 +199,29 @@ export default class FilmListPresenter {
   #handleToFavoritesClick = (filmObject, isPopup) => {
     const updatedObject = {...filmObject, inFavorites: !filmObject.inFavorites};
     this.#handleFilmChange(updatedObject, isPopup);
+  };
+
+
+  #sortFilms = (sortType) => {
+    switch (sortType) {
+      case SortType.BY_DATE:
+        this.#filmObjects.sort(sortByDateFirstNewest);// метод массивов sort
+        break;
+      case SortType.BY_RATING:
+        this.#filmObjects.sort(sortByRatingFirstHighest);
+        break;
+      default:
+        this.#filmObjects = [...this.#initialFilmObjects];
+    }
+
+    this.#currentSortType = sortType;
+  };
+
+  //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
+  #handleSortTypeChanging = (sortType) => {
+    if (sortType === this.#currentSortType) {return;}
+    this.#sortFilms(sortType);
+    this.#clearFilmList();
+    this.#renderFilmList();
   };
 }
