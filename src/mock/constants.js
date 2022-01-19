@@ -45,6 +45,13 @@ export const EMOJIS = [
   'smile.png'
 ];
 
+export const EMOJIS_NAMES = [
+  'angry',
+  'puke',
+  'sleeping',
+  'smile'
+];
+
 export const DIRECTORS = [
   'John Cromwell',
   'Adolf Zukor',

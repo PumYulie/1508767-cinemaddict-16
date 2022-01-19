@@ -1,9 +1,12 @@
 import AbstractClassView from './abstract-class-view';
 
 const renderFilmsListItem = (filmObj) => {
-  const {name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber} = filmObj;
+  const {id, name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
 
-  return `<article class="film-card">
+  const activateBtnClass = (value) => value ? 'film-card__controls-item--active' : '';
+
+
+  return `<article class="film-card" id="${id}'>
     <a class="film-card__link">
       <h3 class="film-card__title">${name}</h3>
       <p class="film-card__rating">${rating}</p>
@@ -17,9 +20,9 @@ const renderFilmsListItem = (filmObj) => {
       <span class="film-card__comments">${commentsNumber} comments</span>
     </a>
     <div class="film-card__controls">
-      <button class="film-card__controls-item film-card__controls-item--add-to-watchlist film-card__controls-item--active" type="button">Add to watchlist</button>
-      <button class="film-card__controls-item film-card__controls-item--mark-as-watched film-card__controls-item--active" type="button">Mark as watched</button>
-      <button class="film-card__controls-item film-card__controls-item--favorite film-card__controls-item--active" type="button">Mark as favorite</button>
+      <button class="film-card__controls-item film-card__controls-item--add-to-watchlist ${activateBtnClass(inWatchList)}" type="button">Add to watchlist</button>
+      <button class="film-card__controls-item film-card__controls-item--mark-as-watched ${activateBtnClass(alreadyWatched)}" type="button">Mark as watched</button>
+      <button class="film-card__controls-item film-card__controls-item--favorite ${activateBtnClass(inFavorites)}" type="button">Mark as favorite</button>
     </div>
   </article>`;
 };

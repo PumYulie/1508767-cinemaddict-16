@@ -1,8 +1,10 @@
-import AbstractClassView from './abstract-class-view';
+import SmartView from './smart-view.js';
+import {EMOJIS_NAMES} from '../mock/constants.js';
+import {generateComment} from '../mock/generate-comments-objects.js';
 
-const renderPopup = (filmObj) => {
+const renderPopup = (state) => {
 
-  const {name, poster, rating, runTime, commentsNumber, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, comments, inWatchList, alreadyWatched, inFavorites} = filmObj;
+  const {name, poster, rating, runTime, commentsNumber, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, comments, inWatchList, alreadyWatched, inFavorites, selectedEmoji, commentText} = state;
 
   const generateGenres = (array) => {
     const genresContainer = document.createElement('div');
@@ -15,13 +17,17 @@ const renderPopup = (filmObj) => {
     return genresContainer.innerHTML;
   };
 
-  const activateControlButton = (value) => {
-    if (value) {
-      return 'film-details__control-button--active';
-    } else {
-      return '';
-    }
-  };
+  const generateEmojiRadios = () => (
+    `${EMOJIS_NAMES.map((emoji) =>
+      `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
+      <label class="film-details__emoji-label" for="emoji-${emoji}">
+        <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="${emoji}">
+      </label>`)
+      .join('')
+    }`
+  );
+
+  const activateBtnClass = (value) => value ? 'film-details__control-button--active' : '';
 
   const generateCommentsHTML = (commentObjs) => (
     `<ul class="film-details__comments-list">
@@ -46,32 +52,16 @@ const renderPopup = (filmObj) => {
 
   const generateNewCommentHTML = () => (
     `<div class="film-details__new-comment">
-      <div class="film-details__add-emoji-label"></div>
+      <div class="film-details__add-emoji-label">
+        ${selectedEmoji ? `<img src="images/emoji/${selectedEmoji}.png" width="55" height="55" alt="emoji-${selectedEmoji}">` : ''}
+      </div>
 
       <label class="film-details__comment-label">
-        <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+        <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${commentText}</textarea>
       </label>
 
       <div class="film-details__emoji-list">
-        <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
-        <label class="film-details__emoji-label" for="emoji-smile">
-          <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-        </label>
-
-        <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
-        <label class="film-details__emoji-label" for="emoji-sleeping">
-          <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-        </label>
-
-        <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke">
-        <label class="film-details__emoji-label" for="emoji-puke">
-          <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-        </label>
-
-        <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
-        <label class="film-details__emoji-label" for="emoji-angry">
-          <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-        </label>
+        ${generateEmojiRadios()}
       </div>
     </div>`
 
@@ -143,10 +133,10 @@ const renderPopup = (filmObj) => {
       </div>
 
       <section class="film-details__controls">
-        <button type="button" class="film-details__control-button film-details__control-button--watchlist ${activateControlButton(inWatchList)}" id="watchlist" name="watchlist">Add to watchlist</button>
-        <button type="button" class="film-details__control-button ${activateControlButton(alreadyWatched)}
+        <button type="button" class="film-details__control-button film-details__control-button--watchlist ${activateBtnClass(inWatchList)}" id="watchlist" name="watchlist">Add to watchlist</button>
+        <button type="button" class="film-details__control-button ${activateBtnClass(alreadyWatched)}
         film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-        <button type="button" class="film-details__control-button film-details__control-button--favorite ${activateControlButton(inFavorites)}" id="favorite" name="favorite">Add to favorites</button>
+        <button type="button" class="film-details__control-button film-details__control-button--favorite ${activateBtnClass(inFavorites)}" id="favorite" name="favorite">Add to favorites</button>
       </section>
     </div>
 
@@ -163,20 +153,97 @@ const renderPopup = (filmObj) => {
 </section>`;
 };
 
-export default class PopupView extends AbstractClassView {
-  #filmObj = null;
+
+export default class PopupView extends SmartView {
 
   constructor(filmObj) {
     super();
-    this.#filmObj = filmObj;
+    this._state = PopupView.parseFilmObjectToState(filmObj, {
+      selectedEmoji: '',
+      commentText: ''
+    });
+    this.#setEventHandlers();
   }
 
   get template() {
-    return renderPopup(this.#filmObj);
+    return renderPopup(this._state);
   }
 
-  setOnCloseBtnClick = (someCallback) => {
-    this._callback.onCloseBtnClick = someCallback;
+  static parseFilmObjectToState = (filmObject, formState) => ({...filmObject, ...formState})
+
+  static parseStateToFilmObject = (state) => {
+    const filmObject = {...state};
+    delete filmObject.selectedEmoji;
+    delete filmObject.commentText;
+    return filmObject;
+  }
+
+  restoreHandlers = () => {
+    this.#setEventHandlers();
+
+    //не работает
+    this.setCommentSubmitKeyDown(this._callback.commentSubmitHandler);
+
+    //this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
+    //this.setToWatchlistClickHandler(this._callback.toWatchlistClickHandler);
+    //this.setToHistoryClickHandler(this._callback.toHistoryClickHandler);
+    //this.setToFavoritesClickHandler(this._callback.toFavoritesClickHandler);
+  };
+
+  #setEventHandlers = () => {
+    this.element.querySelector('.film-details__emoji-list')
+      .addEventListener('change', this.#radioEmojiChangeHandler);
+    this.element.querySelector('.film-details__comment-input')
+      .addEventListener('input', this.#commentTextareaInputHandler);
+  };
+
+  #radioEmojiChangeHandler = (evt) => {
+    if (evt.target.tagName !== 'INPUT') {return;}
+    this.updateState({selectedEmoji: evt.target.value});
+  };
+
+  #commentTextareaInputHandler = (evt) => {
+    evt.preventDefault();
+    this.updateState({commentText: evt.target.value}, true);
+  };
+
+
+  setCommentSubmitKeyDown = (callback) => {
+    //this._callback.commentSubmitHandler = callback;
+    document.addEventListener('keydown', this.#commentSubmitHandler);
+  };
+
+
+  #commentSubmitHandler = (evt) => {
+    if((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') {
+      //создать все свойства нового объекта комментария
+      //припушить новый объект коммента в объект фильма
+      //передать это в виде объекта
+      const commentFromForm = generateComment(this._state.selectedEmoji, this._state.selectedText);
+      //{
+        //emoji: [this._state.selectedEmoji],
+        //date: //generated
+        //author: //generated
+        //message: [this._state.selectedText],
+      //};
+      this.updateState({
+        selectedEmoji: '',
+        commentText: '',
+        comment: [
+          ...this._state.comments,
+          {
+            comment: this._state.commentText,
+            emoji: this.selectedEmoji
+          }
+        ]
+      });
+      this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state));
+    }
+  };
+
+
+  setOnCloseBtnClick = (callback) => {
+    this._callback.onCloseBtnClick = callback;
     this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#onCloseBtnClick);
   }
 

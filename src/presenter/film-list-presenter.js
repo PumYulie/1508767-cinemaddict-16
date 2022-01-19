@@ -65,10 +65,10 @@ export default class FilmListPresenter {
     this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObj));
     this.#filmComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObj));
 
-
-    //перерисовка самого себя:
-    //если старого не было, то рендерю с нуля
-    if (prevFilmComponent === null || prevFilmPopupComponent === null) {
+    console.log('filmObj', filmObj);
+    //перерисовка самого себя: если старого не было, то рендерю с нуля
+    if (prevFilmComponent === null || !prevFilmComponent.element.querySelector('#filmObj.id') || prevFilmPopupComponent === null) {
+    //раньше это условие было if (prevFilmComponent === null || prevFilmPopupComponent === null) {}
       render(this.#filmsListContainer, this.#filmComponent, 'beforeend');
       return;
     }
@@ -82,7 +82,7 @@ export default class FilmListPresenter {
 
   }
 
-/*   #deleteFilm = () => {
+  /*   #deleteFilm = () => {
     cutOffElement(this.#filmComponent);
     cutOffElement(this.#filmPopupComponent);
   } */
@@ -90,7 +90,7 @@ export default class FilmListPresenter {
   #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
       .slice(from, to)
-      .forEach((item) => this.#renderFilm(item)); //удалила первый аргумент this.#filmsListComponent
+      .forEach((item) => this.#renderFilm(item));
   }
 
   #renderFilmList = () => {
@@ -108,7 +108,7 @@ export default class FilmListPresenter {
     cutOffElement(this.#showMoreButtonComponent);
   };
 
-  #renderFilmListContainer = () => { //рисую ul для карточек фильмов
+  #renderFilmListContainer = () => { //ul для постеров
     render(this.#filmBoardContainer, this.#filmsListComponent, 'beforeend');
   }
 
@@ -148,6 +148,9 @@ export default class FilmListPresenter {
     document.addEventListener('keydown', this.#onEscPopupKeyDown);
     this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
 
+    //нужен ли аргумент в this.#onCommentSubmitKeyDown ??
+    this.#filmPopupComponent.setCommentSubmitKeyDown(this.#onCommentSubmitKeyDown);
+
     this.#filmPopupComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject, true));
     this.#filmPopupComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject, true));
     this.#filmPopupComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject, true));
@@ -171,18 +174,24 @@ export default class FilmListPresenter {
     }
   };
 
+  //ДОДЕЛАТЬ
+  #onCommentSubmitKeyDown = (filmObj) => {
+    //получила объект с новым состоянием. теперь надо перерисовать попап
+    this.#handleFilmChange(filmObj, true);
+
+    console.log(filmObj);
+
+      //console.log('#onCommentSubmitKeyDown works');// no
+      //this.#filmPopupComponent.element.querySelector('.film-details__comment-input').value = то что юзер напечатал в поле;
+      //ОТПРАВЛЯЮ новый объект фильма по новому состоянию, чтобы менять модель??
+
+  };
 
   //актуализирую массив объектов фильмов и рендерю тот фильм(+попап если был), что изменился
   #handleFilmChange = (updatedFilm, isPopup) => {
     this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
     this.#initialFilmObjects = updateItem(this.#initialFilmObjects, updatedFilm);
     this.#renderFilm(updatedFilm);
-
-    //почему кнопки в консоли идентичные, а сравнение false?
-    //console.log(evt.target);
-    //console.log(this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite'));
-    //console.log(evt.target === this.#filmPopupComponent.element.querySelector('.film-details__control-button--favorite')); // false - тк объект новый а ивент таргет от старого объекта???
-
     if (isPopup) { this.#handleFilmPosterClick(updatedFilm); }
   };
 
@@ -201,7 +210,6 @@ export default class FilmListPresenter {
     this.#handleFilmChange(updatedObject, isPopup);
   };
 
-
   #sortFilms = (sortType) => {
     switch (sortType) {
       case SortType.BY_DATE:
@@ -213,7 +221,6 @@ export default class FilmListPresenter {
       default:
         this.#filmObjects = [...this.#initialFilmObjects];
     }
-
     this.#currentSortType = sortType;
   };
 

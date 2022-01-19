@@ -3,9 +3,9 @@ import {getRandomInteger, generateValueFromArray} from '../utils/utils.js';
 import dayjs from 'dayjs';
 
 
-const generateCommentDate = () => {
-  const minutesAgo = getRandomInteger(0, 719);
-  const daysAgo = getRandomInteger(0, 1825);
+const generateCommentDate = (maxMinsAgo, maxDaysAgo) => {
+  const minutesAgo = getRandomInteger(0, maxMinsAgo);
+  const daysAgo = getRandomInteger(0, maxDaysAgo);
 
   const commentDate = dayjs()
     .subtract(daysAgo, 'day')
@@ -15,6 +15,12 @@ const generateCommentDate = () => {
   return commentDate;
 };
 
+const generateComment = (emoji, message) => ({
+  emoji: emoji,
+  date: generateCommentDate(3, 0),
+  author: generateValueFromArray(COMMENT_AUTHORS),
+  message: message,
+});
 
 const generateCommentsObjects = (number) => {
   const commentsArray = [];
@@ -22,7 +28,7 @@ const generateCommentsObjects = (number) => {
   for (let i = 0; i < number; i++) {
     const newCommentObj = {
       emoji: generateValueFromArray(EMOJIS),
-      date: generateCommentDate(),
+      date: generateCommentDate(719, 1825),
       author: generateValueFromArray(COMMENT_AUTHORS),
       message: generateValueFromArray(COMMENT_MESSAGES),
     };
@@ -33,4 +39,4 @@ const generateCommentsObjects = (number) => {
 };
 
 
-export {generateCommentsObjects};
+export {generateComment, generateCommentsObjects};
