@@ -1,12 +1,12 @@
 import AbstractClassView from './abstract-class-view';
 
 const renderFilmsListItem = (filmObj) => {
-  const {id, name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
+  const {name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
 
   const activateBtnClass = (value) => value ? 'film-card__controls-item--active' : '';
 
 
-  return `<article class="film-card" id="${id}'>
+  return `<article class="film-card">
     <a class="film-card__link">
       <h3 class="film-card__title">${name}</h3>
       <p class="film-card__rating">${rating}</p>
@@ -41,8 +41,7 @@ export default class FilmListItemView extends AbstractClassView {
 
   setOnPosterClickHandler = (сallback) => {
     this._callback.onPosterClickHandler = сallback;
-    this.element
-      .querySelector('.film-card__link')
+    this.element.querySelector('.film-card__link')
       .addEventListener('click', this.#onPosterClickHandler);
   };
 

@@ -3,25 +3,29 @@ import AbstractClassView from './abstract-class-view.js';
 export default class SmartView extends AbstractClassView {
   _state = {};
 
-  updateState = (updateObj, onlyStateUpdate) => {
-    if (!updateObj) {return;}
-    this._state = {...this._state, ...updateObj}; //обогащаю состояние накликом от юзера
-
-    if (onlyStateUpdate) {return;}//чтобы текстареа не перерисовывалась до отправки комм
-
-    this.updateElement();
+  updateStateNoRender = (updateObj) => {
+    if (!updateObj) { return; }
+    this._state = {...this._state, ...updateObj};
   };
 
-  updateElement = () => {
+  updateStateAndRender = (updateObj, yScrollPosition) => {
+    if (!updateObj) {return;}
+    this._state = {...this._state, ...updateObj};
+
+    this.updateElement(yScrollPosition);
+  };
+
+  updateElement = (yScrollPosition) => {
     const prevElement = this.element;
     const parent = prevElement.parentElement;
     this.removeElement(); // this.element=null
     const newElement = this.element;//рисую по this._state из .template()
     parent.replaceChild(newElement, prevElement);
+    newElement.scrollTop = yScrollPosition;
     this.restoreHandlers();
   };
 
   restoreHandlers = () => {
-    throw new Error('Make restoreHandlers() specific to the class where it\'s used');
+    throw new Error('Make restoreHandlers() specific to your class');
   };
 }

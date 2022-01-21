@@ -27,7 +27,7 @@ export default class FilmListPresenter {
   #filmsListContainer = this.#filmsListComponent.element.querySelector('.films-list__container');
   #showMoreButtonComponent = new ShowMoreButtonView();
   #noFilmsComponent = new NoFilmsView();
-  #sortItemsComponent = new SortItemsView();
+  #sortItemsComponent = new SortItemsView(this.#currentSortType);
 
 
   constructor(filmBoardContainer) {
@@ -43,32 +43,23 @@ export default class FilmListPresenter {
     } else {
       this.#renderSort();
       this.#renderFilmListContainer();
-
       this.#renderFilmList();
     }
   }
 
-  //#renderFilm = (filmListContainer, filmObj) => { //удалить filmListContainer
-  //const filmPresenter = new FilmPresenter(filmListContainer);
-  //filmPresenter.init(filmObj);
-
   #renderFilm = (filmObj) => {
     //для задачи самообновиться. сначала фиксирую старое, если было. и затем обновляю свойствa актуальным контентом
-    const prevFilmComponent = this.#filmComponent;
-    const prevFilmPopupComponent = this.#filmPopupComponent;
+    const prevFilmComponent = this.#filmIdInstance.get(filmObj.id);
+    //const prevFilmPopupComponent = this.#filmPopupComponent;
 
     this.#filmComponent = new FilmListItemView(filmObj);
     this.#filmIdInstance.set(filmObj.id, this.#filmComponent);
+    this.#setEListenersOnFilmComponent(filmObj);
 
-    this.#filmComponent.setOnPosterClickHandler(() => this.#handleFilmPosterClick(filmObj));
-    this.#filmComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObj));
-    this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObj));
-    this.#filmComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObj));
+    //пошла ПЕРЕРИСОВКА самого себя:
 
-    console.log('filmObj', filmObj);
-    //перерисовка самого себя: если старого не было, то рендерю с нуля
-    if (prevFilmComponent === null || !prevFilmComponent.element.querySelector('#filmObj.id') || prevFilmPopupComponent === null) {
-    //раньше это условие было if (prevFilmComponent === null || prevFilmPopupComponent === null) {}
+    //если старого не было, то рендерю с нуля
+    if (!prevFilmComponent) { //|| prevFilmPopupComponent === null
       render(this.#filmsListContainer, this.#filmComponent, 'beforeend');
       return;
     }
@@ -78,19 +69,26 @@ export default class FilmListPresenter {
     }
     //но в целом старое убираю
     cutOffElement(prevFilmComponent);
-    cutOffElement(prevFilmPopupComponent);
+    //cutOffElement(prevFilmPopupComponent);
 
   }
 
-  /*   #deleteFilm = () => {
-    cutOffElement(this.#filmComponent);
-    cutOffElement(this.#filmPopupComponent);
-  } */
+  #setEListenersOnFilmComponent = (filmObject) => {
+    //вызываю методы #filmComponent-а(view) и передаю в них КОЛБЭКАМИ методы самого презентера
+    this.#filmComponent.setOnPosterClickHandler(() => this.#renderPopup(filmObject));
+    this.#filmComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject));
+    this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject));
+    this.#filmComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject));
+  };
 
   #renderFilmsAboveButton = (from, to) => {
     this.#filmObjects
       .slice(from, to)
       .forEach((item) => this.#renderFilm(item));
+  }
+
+  #renderFilmListContainer = () => { //ul для мини-постеров
+    render(this.#filmBoardContainer, this.#filmsListComponent, 'beforeend');
   }
 
   #renderFilmList = () => {
@@ -101,22 +99,101 @@ export default class FilmListPresenter {
     }
   }
 
-  #clearFilmList = () => {
-    this.#filmIdInstance.forEach((mapValue) => mapValue.element.remove());
-    this.#filmIdInstance.clear();
-    this.#renderedFilmCards = FILMS_PER_STEP;
-    cutOffElement(this.#showMoreButtonComponent);
+  #renderPopup = (filmObject, scrollYPosition) => {
+
+    if (this.#filmPopupComponent) {
+      cutOffElement(this.#filmPopupComponent);
+    }
+
+    this.#filmPopupComponent = new PopupView(filmObject);
+    insertElement(this.#filmPopupComponent, this.#filmsListComponent, scrollYPosition);
+    document.body.classList.add('hide-overflow');
+    document.addEventListener('keydown', this.#onEscPopupKeyDown);
+    this.#setEListenersOnPopupComponent();
+
+    this.#filmComponent.element.querySelector('.film-card__link')
+    //как проверить, снимается ли этот обработчик без аргумента??та же ли функция??
+      .removeEventListener('click', this.#renderPopup);
   };
 
-  #renderFilmListContainer = () => { //ul для постеров
-    render(this.#filmBoardContainer, this.#filmsListComponent, 'beforeend');
-  }
+  #setEListenersOnPopupComponent = () => {
+    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
+    this.#filmPopupComponent.setFormSubmitKeyDown(this.#onCommentSubmitKeyDown);
+
+    this.#filmPopupComponent.setToWatchlistClickHandler(this.#handleToWatchlistClick);
+    this.#filmPopupComponent.setToHistoryClickHandler(this.#handleToHistoryClick);
+    this.#filmPopupComponent.setToFavoritesClickHandler(this.#handleToFavoritesClick);
+  };
+
+
+  // Р Е Р Е Н Д Е Р
+  //ререндерю постер и/или попап. Передавать колбэком во view
+
+  #handleFilmChange = (updatedFilm, isPopup, popupYScroll) => {
+    //актуализирую массив объектов фильмов
+    this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
+    this.#initialFilmObjects = updateItem(this.#initialFilmObjects, updatedFilm);
+
+    //ререндерю тот фильм(+попап если был), что изменился
+    this.#renderFilm(updatedFilm);
+    if (isPopup) {
+      this.#renderPopup(updatedFilm, popupYScroll);
+    }
+  };
+
+
+  #onCommentSubmitKeyDown = (filmObj, popupYScroll) => {//аргументом объект с новым состоянием
+    //теперь перерисовываю мелкий постер и попап
+    this.#handleFilmChange(filmObj, true, popupYScroll);//true тк только на попапе могу сабмитить комент
+  };
 
   #renderSort = () => {
     render(this.#filmBoardContainer, this.#sortItemsComponent, 'beforeend');
     this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
   }
 
+  //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
+  #handleSortTypeChanging = (sortType) => {
+    if (sortType === this.#currentSortType) {return;}
+
+    //почему не работает this.#sortItemsComponent.removeElement();
+    const prevSortComponent = this.#sortItemsComponent;
+    this.#sortItemsComponent = new SortItemsView(sortType);
+    replaceElement(prevSortComponent, this.#sortItemsComponent);
+    this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
+
+    this.#sortFilms(sortType);
+    this.#clearFilmList();
+    this.#renderFilmList();
+
+    cutOffElement(prevSortComponent);
+  };
+
+  #sortFilms = (sortType) => {
+    switch (sortType) {
+      case SortType.BY_DATE:
+        this.#filmObjects.sort(sortByDateFirstNewest);// метод массивов sort
+        break;
+      case SortType.BY_RATING:
+        this.#filmObjects.sort(sortByRatingFirstHighest);
+        break;
+      default:
+        this.#filmObjects = [...this.#initialFilmObjects];
+    }
+
+    this.#currentSortType = sortType;
+  };
+
+
+  #clearFilmList = () => {
+    //mapValue.element.remove(). но почему mapValue.removeElement() не работало?
+    this.#filmIdInstance.forEach((mapValue) => cutOffElement(mapValue));
+    this.#filmIdInstance.clear();
+    this.#renderedFilmCards = FILMS_PER_STEP;
+    cutOffElement(this.#showMoreButtonComponent);
+  };
+
+  //проверь доп условие в их #renderBoard в board-presenter
   #renderNoFilm = () => {
     render(this.#filmBoardContainer, this.#noFilmsComponent, 'beforeend');
   }
@@ -135,31 +212,6 @@ export default class FilmListPresenter {
     }
   }
 
-  #handleFilmPosterClick = (filmObject) => {
-
-    if (this.#filmPopupComponent) {
-      //console.log('закрываю попап');//ПОЧЕМУ БЕЗ IF ДАЕТ ОШИБКУ??, хотя консль срабатывает в 100% случаев, т.е.this.#filmPopupComponent всегда существует
-      cutOffElement(this.#filmPopupComponent);
-    }
-
-    this.#filmPopupComponent = new PopupView(filmObject);
-    insertElement(this.#filmPopupComponent, this.#filmsListComponent);
-    document.body.classList.add('hide-overflow');
-    document.addEventListener('keydown', this.#onEscPopupKeyDown);
-    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
-
-    //нужен ли аргумент в this.#onCommentSubmitKeyDown ??
-    this.#filmPopupComponent.setCommentSubmitKeyDown(this.#onCommentSubmitKeyDown);
-
-    this.#filmPopupComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject, true));
-    this.#filmPopupComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject, true));
-    this.#filmPopupComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject, true));
-
-    this.#filmComponent.element.querySelector('.film-card__link')
-    //как проверить, снимается ли этот обработчик без аргумента??та же ли функция??
-      .removeEventListener('click', this.#handleFilmPosterClick);
-  };
-
   #onCloseFilmPopupClick = () => {
     document.body.classList.remove('hide-overflow');
     cutOffElement(this.#filmPopupComponent);
@@ -174,61 +226,26 @@ export default class FilmListPresenter {
     }
   };
 
-  //ДОДЕЛАТЬ
-  #onCommentSubmitKeyDown = (filmObj) => {
-    //получила объект с новым состоянием. теперь надо перерисовать попап
-    this.#handleFilmChange(filmObj, true);
 
-    console.log(filmObj);
-
-      //console.log('#onCommentSubmitKeyDown works');// no
-      //this.#filmPopupComponent.element.querySelector('.film-details__comment-input').value = то что юзер напечатал в поле;
-      //ОТПРАВЛЯЮ новый объект фильма по новому состоянию, чтобы менять модель??
-
-  };
-
-  //актуализирую массив объектов фильмов и рендерю тот фильм(+попап если был), что изменился
-  #handleFilmChange = (updatedFilm, isPopup) => {
-    this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
-    this.#initialFilmObjects = updateItem(this.#initialFilmObjects, updatedFilm);
-    this.#renderFilm(updatedFilm);
-    if (isPopup) { this.#handleFilmPosterClick(updatedFilm); }
-  };
-
-  #handleToWatchlistClick = (filmObject, isPopup) => {
+  //3 обработчика на мелкий постер и ПОПАП
+  #handleToWatchlistClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inWatchList: !filmObject.inWatchList};
-    this.#handleFilmChange(updatedObject, isPopup);
+    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
   };
 
-  #handleToHistoryClick = (filmObject, isPopup) => {
+  #handleToHistoryClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, alreadyWatched: !filmObject.alreadyWatched};
-    this.#handleFilmChange(updatedObject, isPopup);
+    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
   };
 
-  #handleToFavoritesClick = (filmObject, isPopup) => {
+  #handleToFavoritesClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inFavorites: !filmObject.inFavorites};
-    this.#handleFilmChange(updatedObject, isPopup);
+    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
   };
 
-  #sortFilms = (sortType) => {
-    switch (sortType) {
-      case SortType.BY_DATE:
-        this.#filmObjects.sort(sortByDateFirstNewest);// метод массивов sort
-        break;
-      case SortType.BY_RATING:
-        this.#filmObjects.sort(sortByRatingFirstHighest);
-        break;
-      default:
-        this.#filmObjects = [...this.#initialFilmObjects];
-    }
-    this.#currentSortType = sortType;
-  };
 
-  //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
-  #handleSortTypeChanging = (sortType) => {
-    if (sortType === this.#currentSortType) {return;}
-    this.#sortFilms(sortType);
-    this.#clearFilmList();
-    this.#renderFilmList();
-  };
+  /*   #deleteFilm = (filmObject) => { //у них называется destroy в film-presenter
+    cutOffElement(this.#filmIdInstance.get(filmObj.id));
+    cutOffElement(this.#filmPopupComponent);//надо ли удалять?как привязать поап к фильмлистайтему?
+  } */
 }

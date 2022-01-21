@@ -29,7 +29,7 @@ const createElement = (html) => {
   return newElement.firstChild;
 };
 
-const insertElement = (componentToBeChild, componentToBeParent) => {
+const insertElement = (componentToBeChild, componentToBeParent, popupScrollY) => {
   if (!componentToBeChild) {
     throw new Error('Tried to insert а child, but it is false');
   }
@@ -37,6 +37,10 @@ const insertElement = (componentToBeChild, componentToBeParent) => {
   const child = getElementPropIfAny(componentToBeChild);
   const parent = getElementPropIfAny(componentToBeParent);
   parent.appendChild(child);
+  if (popupScrollY) {
+    child.scrollTop = popupScrollY;
+  }
+
 };
 
 const cutOffElement = (componentToRemove) => {

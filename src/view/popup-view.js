@@ -50,7 +50,7 @@ const renderPopup = (state) => {
     </ul>`
   );
 
-  const generateNewCommentHTML = () => (
+  const generateFormHTML = () => (
     `<div class="film-details__new-comment">
       <div class="film-details__add-emoji-label">
         ${selectedEmoji ? `<img src="images/emoji/${selectedEmoji}.png" width="55" height="55" alt="emoji-${selectedEmoji}">` : ''}
@@ -145,7 +145,7 @@ const renderPopup = (state) => {
         <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentsNumber}</span></h3>
 
         ${generateCommentsHTML(comments)}
-        ${generateNewCommentHTML()}
+        ${generateFormHTML()}
 
       </section>
     </div>
@@ -155,22 +155,31 @@ const renderPopup = (state) => {
 
 
 export default class PopupView extends SmartView {
+  #formInitialStateProps = null;
 
   constructor(filmObj) {
     super();
-    this._state = PopupView.parseFilmObjectToState(filmObj, {
+    this.#formInitialStateProps = {
       selectedEmoji: '',
-      commentText: ''
-    });
-    this.#setEventHandlers();
+      commentText: '',
+      srollPosition: 0
+    };
+    //создаю объект начального состояния по данным
+    this._state = PopupView.parseFilmObjectToState(filmObj, this.#formInitialStateProps);
+
+    this.popupYScroll = null;
+
+    this.#setInnerELHandlers();
   }
 
   get template() {
     return renderPopup(this._state);
   }
 
-  static parseFilmObjectToState = (filmObject, formState) => ({...filmObject, ...formState})
+  //создаю начальное состояние из объекта. обогащаю полями с изначальным состоянием формы
+  static parseFilmObjectToState = (filmObject, formStateProps) => ({...filmObject, ...formStateProps})
 
+  //состояние в объект. вызываю, когда жмут кнопки для сабмита коментария
   static parseStateToFilmObject = (state) => {
     const filmObject = {...state};
     delete filmObject.selectedEmoji;
@@ -179,18 +188,17 @@ export default class PopupView extends SmartView {
   }
 
   restoreHandlers = () => {
-    this.#setEventHandlers();
+    this.#setInnerELHandlers();
+    this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);//не работает
 
-    //не работает
-    this.setCommentSubmitKeyDown(this._callback.commentSubmitHandler);
-
-    //this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
-    //this.setToWatchlistClickHandler(this._callback.toWatchlistClickHandler);
-    //this.setToHistoryClickHandler(this._callback.toHistoryClickHandler);
-    //this.setToFavoritesClickHandler(this._callback.toFavoritesClickHandler);
+    this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
+    this.setToWatchlistClickHandler(this._callback.toWatchlistClickHandler);
+    this.setToHistoryClickHandler(this._callback.toHistoryClickHandler);
+    this.setToFavoritesClickHandler(this._callback.toFavoritesClickHandler);
   };
 
-  #setEventHandlers = () => {
+  //как создался попап я на его кнопки накидываю слушатели
+  #setInnerELHandlers = () => {
     this.element.querySelector('.film-details__emoji-list')
       .addEventListener('change', this.#radioEmojiChangeHandler);
     this.element.querySelector('.film-details__comment-input')
@@ -199,46 +207,41 @@ export default class PopupView extends SmartView {
 
   #radioEmojiChangeHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {return;}
-    this.updateState({selectedEmoji: evt.target.value});
+    this.popupYScroll = this.element.scrollTop;
+    this.updateStateAndRender({selectedEmoji: evt.target.value}, this.popupYScroll);
   };
 
   #commentTextareaInputHandler = (evt) => {
-    evt.preventDefault();
-    this.updateState({commentText: evt.target.value}, true);
+    //evt.preventDefault();//а нужно что-то дефолтное предотвращать?
+    this.updateStateNoRender({
+      commentText: evt.target.value,
+    });
   };
 
-
-  setCommentSubmitKeyDown = (callback) => {
-    //this._callback.commentSubmitHandler = callback;
-    document.addEventListener('keydown', this.#commentSubmitHandler);
+  //задача метода - навесить слушатель с конкретным обработчиком-колбэком из презентера
+  setFormSubmitKeyDown = (callback) => {
+    this._callback.commentSubmitHandler = callback;
+    document.addEventListener('keydown', this.#formSubmitHandler);
   };
 
-
-  #commentSubmitHandler = (evt) => {
-    if((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') {
-      //создать все свойства нового объекта комментария
-      //припушить новый объект коммента в объект фильма
-      //передать это в виде объекта
-      const commentFromForm = generateComment(this._state.selectedEmoji, this._state.selectedText);
-      //{
-        //emoji: [this._state.selectedEmoji],
-        //date: //generated
-        //author: //generated
-        //message: [this._state.selectedText],
-      //};
-      this.updateState({
-        selectedEmoji: '',
-        commentText: '',
-        comment: [
-          ...this._state.comments,
-          {
-            comment: this._state.commentText,
-            emoji: this.selectedEmoji
-          }
-        ]
-      });
-      this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state));
+  #formSubmitHandler = (evt) => {
+    if ( !((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') ) {
+      return;
     }
+    if (!this._state.selectedEmoji || !this._state.commentText) {
+      return;
+    }
+    this.popupYScroll = this.element.scrollTop;
+
+    const commentFromForm = generateComment(this._state.selectedEmoji, this._state.commentText);
+
+    this.updateStateAndRender({
+      ...this.#formInitialStateProps, //сброс редактируемых полей в состоянии
+      comment: [...this._state.comments, commentFromForm] //припушиваю коммент
+    });
+    //вызываю колбэк презентера(c актуальным объектом фильма) => ререндерю постер+попап
+    this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
+
   };
 
 
@@ -259,7 +262,8 @@ export default class PopupView extends SmartView {
   }
 
   #toWatchlistClickHandler = () => {
-    this._callback.toWatchlistClickHandler();
+    this.popupYScroll = this.element.scrollTop;
+    this._callback.toWatchlistClickHandler(PopupView.parseStateToFilmObject(this._state), true, this.popupYScroll);
   }
 
 
@@ -270,7 +274,8 @@ export default class PopupView extends SmartView {
   }
 
   #toHistoryClickHandler = () => {
-    this._callback.toHistoryClickHandler();
+    this.popupYScroll = this.element.scrollTop;
+    this._callback.toHistoryClickHandler(PopupView.parseStateToFilmObject(this._state), true, this.popupYScroll);
   }
 
 
@@ -281,6 +286,7 @@ export default class PopupView extends SmartView {
   };
 
   #toFavoritesClickHandler = () => {
-    this._callback.toFavoritesClickHandler();
+    this.popupYScroll = this.element.scrollTop;
+    this._callback.toFavoritesClickHandler(PopupView.parseStateToFilmObject(this._state), true, this.popupYScroll);
   };
 }
