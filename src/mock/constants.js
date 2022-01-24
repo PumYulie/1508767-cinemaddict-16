@@ -132,5 +132,20 @@ export const DESCRIPTIONS = [
 export const SortType = {
   DEFAULT: 'default',
   BY_DATE: 'by-date',
-  BY_RATING: 'by-rating',
+  BY_RATING: 'by-rating'
+};
+
+export const UserAction = {
+  ADD_FILM_TO_WATCHLIST: 'ADD_FILM_TO_WATCHLIST',
+  ADD_FILM_TO_FAVORITES: 'ADD_FILM_TO_FAVORITES',
+  ADD_FILM_TO_HISTORY: 'ADD_FILM_TO_HISTORY',
+  SORT_FILMS: 'SORT_FILMS', //уточнять вид: по дате по рейтингу по дефолту?
+  ADD_COMMENT: 'ADD_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT'
+};
+
+export const UpdateType = {
+  PATCH: 'PATCH',//только карточку и попап(если был)
+  MINOR: 'MINOR',//список постеров (и попап если был) и сортировка
+  MAJOR: 'MAJOR'//ререндер строки Watchlist/History/Favorites, сортировки(?????), списка постеров(если стою в фаворитах и удаляю из фаворитов), сам изменившийся постер и попап(если открыт)
 };

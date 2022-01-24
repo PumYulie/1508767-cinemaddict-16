@@ -13,7 +13,7 @@ const renderSortItems = (selectedSort) => {
 };
 
 export default class SortItemsView extends AbstractClassView {
-  #selectedSort = SortType.DEFAULT;
+  #selectedSort = null;
 
   constructor(selectedSort) {
     super();

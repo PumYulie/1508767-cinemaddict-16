@@ -1,6 +1,5 @@
 import {render, cutOffElement, insertElement, replaceElement} from '../utils/render.js';
-import {updateItem} from '../utils/utils.js';
-import {SortType} from '../mock/constants.js';
+import {SortType, UserAction, UpdateType} from '../mock/constants.js';
 import {sortByDateFirstNewest, sortByRatingFirstHighest} from '../utils/film-functions.js';
 import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
@@ -12,12 +11,13 @@ import PopupView from '../view/popup-view.js';
 
 const FILMS_PER_STEP = 5;
 
+
 export default class FilmListPresenter {
-  #filmObjects = [];
+  #filmsModel = null;
+
   #renderedFilmCards = FILMS_PER_STEP;
   #filmIdInstance = new Map();
   #currentSortType = SortType.DEFAULT;
-  #initialFilmObjects = [];
 
   #filmBoardContainer = null;
   #filmComponent = null;
@@ -25,26 +25,32 @@ export default class FilmListPresenter {
 
   #filmsListComponent = new FilmListView();
   #filmsListContainer = this.#filmsListComponent.element.querySelector('.films-list__container');
-  #showMoreButtonComponent = new ShowMoreButtonView();
+  #showMoreButtonComponent = null;
   #noFilmsComponent = new NoFilmsView();
-  #sortItemsComponent = new SortItemsView(this.#currentSortType);
+  #sortItemsComponent = null;
 
 
-  constructor(filmBoardContainer) {
+  constructor(filmBoardContainer, filmsModel) {
+    this.#filmsModel = filmsModel;
     this.#filmBoardContainer = filmBoardContainer;
+
+    this.#filmsModel.addObserver(this.#handleModelEventComplete);
   }
 
-  init = (filmObjects) => {
-    this.#filmObjects = [...filmObjects];
-    this.#initialFilmObjects = [...filmObjects];//сохранила массив объектов ДО сортировки
-
-    if (this.#filmObjects.length === 0) {
-      this.#renderNoFilm();
-    } else {
-      this.#renderSort();
-      this.#renderFilmListContainer();
-      this.#renderFilmList();
+  //с 's' на конце films  - новое filmsObjects
+  get filmsObjects () {
+    switch (this.#currentSortType) {
+      case SortType.BY_DATE:
+        return [...this.#filmsModel.filmsObjects].sort(sortByDateFirstNewest);
+      case SortType.BY_RATING:
+        return [...this.#filmsModel.filmsObjects].sort(sortByRatingFirstHighest);
     }
+    //а если switch не отработал, возвращаю массив в исходном порядке, для сортировки по дефолту
+    return this.#filmsModel.filmsObjects;
+  }
+
+  init = () => {
+    this.#renderBoard();
   }
 
   #renderFilm = (filmObj) => {
@@ -79,25 +85,15 @@ export default class FilmListPresenter {
     this.#filmComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject));
     this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject));
     this.#filmComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject));
-  };
-
-  #renderFilmsAboveButton = (from, to) => {
-    this.#filmObjects
-      .slice(from, to)
-      .forEach((item) => this.#renderFilm(item));
   }
+
+  #renderFilmsAboveButton = (filmsObjToRender) => {
+    filmsObjToRender.forEach((filmObject) => this.#renderFilm(filmObject));
+  };
 
   #renderFilmListContainer = () => { //ul для мини-постеров
     render(this.#filmBoardContainer, this.#filmsListComponent, 'beforeend');
-  }
-
-  #renderFilmList = () => {
-    this.#renderFilmsAboveButton(0, Math.min(this.#filmObjects.length, FILMS_PER_STEP));
-
-    if (this.#filmObjects.length > FILMS_PER_STEP) {
-      this.#renderShowMoreButton();
-    }
-  }
+  };
 
   #renderPopup = (filmObject, scrollYPosition) => {
 
@@ -126,91 +122,153 @@ export default class FilmListPresenter {
   };
 
 
-  // Р Е Р Е Н Д Е Р
+  // К О Л Б Э К   В   М О Д Е Л Ь
+  // его ВЫЗЫВАЕТ МОДЕЛЬ(НАБЛЮДАТЕЛЬ), когда раздуплилась с задачей
+  // передадим его модели. жук updateType
+  #handleModelEventComplete = (updateType, updatedObject) => {
+    switch (updateType) {
+      case UpdateType.PATCH:
+        //this.#renderFilm(updatedObject) //или просто так???????
+        this.#renderFilm(this.#filmIdInstance.get(updatedObject.id));
+        //тут вызвать рендерпопап??
+        break;
+      case UpdateType.MINOR:
+        //список постеров и ссылки сортировки при сортировке
+        this.#clearBoard();
+        this.#renderBoard();
+        break;
+      case UpdateType.MAJOR:
+        //все перерисовать, связано с фильтрацией
+        this.#clearBoard({resetRenderedFilmCards: true, resetSortType: true});
+        this.#renderBoard();
+        break;
+    }
+  };
+
+  //передадим его вьюхам
+  //говорил что в filmObjectToUpdate только ЧАСТЬ объекта, который обновился
+  #handleViewUserActions = (updateType, actionType, filmObjectToUpdate, isPopup, popupYScroll) => {
+
+    switch (actionType) {
+      case UserAction.UPDATE_FILM:
+        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        //надо это сюда???? или это надо в другом месте вообще
+        //if (isPopup) {this.#renderPopup(filmObjectToUpdate, popupYScroll);}
+        break;
+
+      //нужен ли отдельный метод в модели на сортировку фильмов?
+      //получаем порядок фильмов от модели ведь. или нам нафиг не надо ее дергатб по этому поводу
+      //case UserAction.UPDATE_FILM_LIST:
+        //this.
+
+    }
+
+  };
+
+  // Р Е Р Е Н Д Е Р  - вместо #handleFilmChange теперь #handleViewUserActions
   //ререндерю постер и/или попап. Передавать колбэком во view
-
-  #handleFilmChange = (updatedFilm, isPopup, popupYScroll) => {
-    //актуализирую массив объектов фильмов
-    this.#filmObjects = updateItem(this.#filmObjects, updatedFilm);
-    this.#initialFilmObjects = updateItem(this.#initialFilmObjects, updatedFilm);
-
-    //ререндерю тот фильм(+попап если был), что изменился
+  /*   #handleFilmChange = (updatedFilm, isPopup, popupYScroll) => {
     this.#renderFilm(updatedFilm);
     if (isPopup) {
       this.#renderPopup(updatedFilm, popupYScroll);
     }
-  };
+  }; */
 
 
   #onCommentSubmitKeyDown = (filmObj, popupYScroll) => {//аргументом объект с новым состоянием
     //теперь перерисовываю мелкий постер и попап
-    this.#handleFilmChange(filmObj, true, popupYScroll);//true тк только на попапе могу сабмитить комент
+    this.#handleViewUserActions(UpdateType.PATCH, UserAction.UPDATE_FILM, filmObj, true, popupYScroll);//true тк только на попапе могу сабмитить комент
   };
 
   #renderSort = () => {
-    render(this.#filmBoardContainer, this.#sortItemsComponent, 'beforeend');
+    this.#sortItemsComponent = new SortItemsView(this.#currentSortType);
     this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
-  }
+    render(this.#filmBoardContainer, this.#sortItemsComponent, 'beforeend');
+  };
 
   //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
   #handleSortTypeChanging = (sortType) => {
     if (sortType === this.#currentSortType) {return;}
 
     //почему не работает this.#sortItemsComponent.removeElement();
-    const prevSortComponent = this.#sortItemsComponent;
-    this.#sortItemsComponent = new SortItemsView(sortType);
-    replaceElement(prevSortComponent, this.#sortItemsComponent);
-    this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
+    //засунуть 4 строки ниже в метод #renderSort по аналогии с рендерфильм
+    //const prevSortComponent = this.#sortItemsComponent;
+    //this.#sortItemsComponent = new SortItemsView(sortType);
+    //replaceElement(prevSortComponent, this.#sortItemsComponent);
+    //this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
 
-    this.#sortFilms(sortType);
-    this.#clearFilmList();
-    this.#renderFilmList();
-
-    cutOffElement(prevSortComponent);
-  };
-
-  #sortFilms = (sortType) => {
-    switch (sortType) {
-      case SortType.BY_DATE:
-        this.#filmObjects.sort(sortByDateFirstNewest);// метод массивов sort
-        break;
-      case SortType.BY_RATING:
-        this.#filmObjects.sort(sortByRatingFirstHighest);
-        break;
-      default:
-        this.#filmObjects = [...this.#initialFilmObjects];
-    }
 
     this.#currentSortType = sortType;
+    //this.#clearFilmList();
+    //this.#renderFilmList();
+    this.#clearBoard({resetRenderedFilmCards: true});
+    this.#renderBoard();
+
+    //cutOffElement(prevSortComponent);
   };
 
-
-  #clearFilmList = () => {
-    //mapValue.element.remove(). но почему mapValue.removeElement() не работало?
+  #clearBoard = ({resetRenderedFilmCards = false, resetSortType = false} = {}) => {
+    const filmsAmount = this.filmsObjects.length;
     this.#filmIdInstance.forEach((mapValue) => cutOffElement(mapValue));
     this.#filmIdInstance.clear();
-    this.#renderedFilmCards = FILMS_PER_STEP;
+
     cutOffElement(this.#showMoreButtonComponent);
-  };
+    cutOffElement(this.#noFilmsComponent);
+    cutOffElement(this.#sortItemsComponent);
+
+    if (resetRenderedFilmCards) {
+      this.#renderedFilmCards = FILMS_PER_STEP;
+    } else { //если перерисовка доски вызвана уменьшением числа фильмов(архив или удаление из списка), корректирую число отрисованных задач
+      this.#renderedFilmCards = Math.min(filmsAmount, this.#renderedFilmCards);
+    }
+
+    if (resetSortType) {
+      this.#currentSortType = SortType.DEFAULT;
+    }
+  }
+
+  #renderBoard = () => {
+    const films = this.filmsObjects;
+    const filmsAmount = films.length;
+
+    if (this.filmsObjects.length === 0) {
+      this.#renderNoFilm();
+      return;
+    }
+
+    this.#renderSort();
+    this.#renderFilmListContainer();//ul для мини-постеров
+
+    this.#renderFilmsAboveButton(films.slice(0, Math.min(filmsAmount, this.#renderedFilmCards)));
+
+    if (filmsAmount > this.#renderedFilmCards) {
+      this.#renderShowMoreButton();
+    }
+  }
 
   //проверь доп условие в их #renderBoard в board-presenter
   #renderNoFilm = () => {
     render(this.#filmBoardContainer, this.#noFilmsComponent, 'beforeend');
-  }
+  };
 
   #renderShowMoreButton = () => {
-    render(this.#filmBoardContainer, this.#showMoreButtonComponent, 'beforeend');
+    this.#showMoreButtonComponent = new ShowMoreButtonView();
     this.#showMoreButtonComponent.setOnClickhandler(this.#onShowMoreButtonClick);
-  }
+    render(this.#filmBoardContainer, this.#showMoreButtonComponent, 'beforeend');
+  };
 
   #onShowMoreButtonClick = () => {
-    this.#renderFilmsAboveButton(this.#renderedFilmCards, this.#renderedFilmCards + FILMS_PER_STEP);
-    this.#renderedFilmCards += FILMS_PER_STEP;
+    const filmsAmount = this.filmsObjects.length;
+    const newRenderedFilmCards = Math.min(this.#renderedFilmCards + FILMS_PER_STEP, filmsAmount);
+    const filmsToRender = this.filmsObjects.slice(this.#renderedFilmCards, newRenderedFilmCards);
 
-    if (this.#renderedFilmCards >= this.#filmObjects.length) {
+    this.#renderFilmsAboveButton(filmsToRender);
+    this.#renderedFilmCards = newRenderedFilmCards;
+
+    if (this.#renderedFilmCards >= filmsAmount) {
       cutOffElement(this.#showMoreButtonComponent);
     }
-  }
+  };
 
   #onCloseFilmPopupClick = () => {
     document.body.classList.remove('hide-overflow');
@@ -230,17 +288,17 @@ export default class FilmListPresenter {
   //3 обработчика на мелкий постер и ПОПАП
   #handleToWatchlistClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inWatchList: !filmObject.inWatchList};
-    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
   };
 
   #handleToHistoryClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, alreadyWatched: !filmObject.alreadyWatched};
-    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
   };
 
   #handleToFavoritesClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inFavorites: !filmObject.inFavorites};
-    this.#handleFilmChange(updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
   };
 
 
