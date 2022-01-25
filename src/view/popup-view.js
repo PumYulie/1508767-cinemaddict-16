@@ -190,6 +190,7 @@ export default class PopupView extends SmartView {
   restoreHandlers = () => {
     this.#setInnerELHandlers();
     this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);//не работает
+    this.setDeleteCommentClickHandler(this._callback.deleteCommentHandler);
 
     this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
     this.setToWatchlistClickHandler(this._callback.toWatchlistClickHandler);
@@ -243,6 +244,20 @@ export default class PopupView extends SmartView {
     this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
 
   };
+
+
+  setDeleteCommentClickHandler = (callback) => {
+    this._callback.deleteCommentHandler = callback;
+    this.element.querySelector('.film-details__comments-list').addEventListener('click', this.#deleteCommentClickHandler);
+  }
+
+  #deleteCommentClickHandler = (evt) => {
+    if (evt.target.tagName !== 'BUTTON') {return;}
+
+    evt.preventDefault();
+    this.popupYScroll = this.element.scrollTop;
+    this._callback.deleteCommentHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
+  }
 
 
   setOnCloseBtnClick = (callback) => {

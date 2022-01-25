@@ -113,8 +113,9 @@ export default class FilmListPresenter {
   };
 
   #setEListenersOnPopupComponent = () => {
-    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
     this.#filmPopupComponent.setFormSubmitKeyDown(this.#onCommentSubmitKeyDown);
+    this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
+    this.#filmPopupComponent.setDeleteCommentClickHandler(this.#onDeleteCommentClick);
 
     this.#filmPopupComponent.setToWatchlistClickHandler(this.#handleToWatchlistClick);
     this.#filmPopupComponent.setToHistoryClickHandler(this.#handleToHistoryClick);
@@ -125,6 +126,7 @@ export default class FilmListPresenter {
   // К О Л Б Э К   В   М О Д Е Л Ь
   // его ВЫЗЫВАЕТ МОДЕЛЬ(НАБЛЮДАТЕЛЬ), когда раздуплилась с задачей
   // передадим его модели. жук updateType
+  //реагирует на изменение в модели
   #handleModelEventComplete = (updateType, updatedObject) => {
     switch (updateType) {
       case UpdateType.PATCH:
@@ -147,6 +149,7 @@ export default class FilmListPresenter {
 
   //передадим его вьюхам
   //говорил что в filmObjectToUpdate только ЧАСТЬ объекта, который обновился
+  //реагирует на то что происходит с вьхами
   #handleViewUserActions = (updateType, actionType, filmObjectToUpdate, isPopup, popupYScroll) => {
 
     switch (actionType) {
@@ -177,8 +180,22 @@ export default class FilmListPresenter {
 
   #onCommentSubmitKeyDown = (filmObj, popupYScroll) => {//аргументом объект с новым состоянием
     //теперь перерисовываю мелкий постер и попап
-    this.#handleViewUserActions(UpdateType.PATCH, UserAction.UPDATE_FILM, filmObj, true, popupYScroll);//true тк только на попапе могу сабмитить комент
+    this.#handleViewUserActions(
+      UpdateType.PATCH,
+      UserAction.ADD_COMMENT,
+      filmObj,
+      true, popupYScroll
+    );//true тк только на попапе могу сабмитить комент
   };
+
+  #onDeleteCommentClick = (filmObj, popupYScroll) => {
+    this.#handleViewUserActions(
+      UpdateType.PATCH,
+      UserAction.DELETE_COMMENT,
+      filmObj,
+      true, popupYScroll //true тк только на попапе могу delete комент
+    );
+  }
 
   #renderSort = () => {
     this.#sortItemsComponent = new SortItemsView(this.#currentSortType);
@@ -189,22 +206,10 @@ export default class FilmListPresenter {
   //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
   #handleSortTypeChanging = (sortType) => {
     if (sortType === this.#currentSortType) {return;}
-
-    //почему не работает this.#sortItemsComponent.removeElement();
-    //засунуть 4 строки ниже в метод #renderSort по аналогии с рендерфильм
-    //const prevSortComponent = this.#sortItemsComponent;
-    //this.#sortItemsComponent = new SortItemsView(sortType);
-    //replaceElement(prevSortComponent, this.#sortItemsComponent);
-    //this.#sortItemsComponent.setSortTypeChangeHandler(this.#handleSortTypeChanging);
-
-
     this.#currentSortType = sortType;
-    //this.#clearFilmList();
-    //this.#renderFilmList();
+
     this.#clearBoard({resetRenderedFilmCards: true});
     this.#renderBoard();
-
-    //cutOffElement(prevSortComponent);
   };
 
   #clearBoard = ({resetRenderedFilmCards = false, resetSortType = false} = {}) => {
@@ -270,6 +275,7 @@ export default class FilmListPresenter {
     }
   };
 
+
   #onCloseFilmPopupClick = () => {
     document.body.classList.remove('hide-overflow');
     cutOffElement(this.#filmPopupComponent);
@@ -288,17 +294,32 @@ export default class FilmListPresenter {
   //3 обработчика на мелкий постер и ПОПАП
   #handleToWatchlistClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inWatchList: !filmObject.inWatchList};
-    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(
+      UpdateType.MAJOR,
+      UserAction.ADD_FILM_TO,
+      updatedObject,
+      isPopup, popupYScroll
+    );
   };
 
   #handleToHistoryClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, alreadyWatched: !filmObject.alreadyWatched};
-    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(
+      UpdateType.MAJOR,
+      UserAction.ADD_FILM_TO,
+      updatedObject,
+      isPopup, popupYScroll
+    );
   };
 
   #handleToFavoritesClick = (filmObject, isPopup, popupYScroll) => {
     const updatedObject = {...filmObject, inFavorites: !filmObject.inFavorites};
-    this.#handleViewUserActions(UpdateType.MAJOR, UserAction.UPDATE_FILM, updatedObject, isPopup, popupYScroll);
+    this.#handleViewUserActions(
+      UpdateType.MAJOR,
+      UserAction.ADD_FILM_TO,
+      updatedObject,
+      isPopup, popupYScroll
+    );
   };
 
 
