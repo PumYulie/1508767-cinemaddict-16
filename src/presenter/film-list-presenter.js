@@ -1,6 +1,7 @@
 import {render, cutOffElement, insertElement, replaceElement} from '../utils/render.js';
 import {SortType, UserAction, UpdateType} from '../mock/constants.js';
 import {sortByDateFirstNewest, sortByRatingFirstHighest} from '../utils/film-functions.js';
+import {filtersObjWithFilteringFuncs} from '../utils/filtersObjWithFilteringFuncs.js';
 import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
@@ -14,6 +15,7 @@ const FILMS_PER_STEP = 5;
 
 export default class FilmListPresenter {
   #filmsModel = null;
+  #filterModel = null;
 
   #renderedFilmCards = FILMS_PER_STEP;
   #filmIdInstance = new Map();
@@ -30,23 +32,29 @@ export default class FilmListPresenter {
   #sortItemsComponent = null;
 
 
-  constructor(filmBoardContainer, filmsModel) {
-    this.#filmsModel = filmsModel;
+  constructor(filmBoardContainer, filmsModel, filterModel) {
     this.#filmBoardContainer = filmBoardContainer;
+    this.#filmsModel = filmsModel;
+    this.#filterModel = filterModel;
 
     this.#filmsModel.addObserver(this.#handleModelEventComplete);
+    this.#filterModel.addObserver(this.#handleModelEventComplete);
   }
 
   //с 's' на конце films  - новое filmsObjects
   get filmsObjects () {
+    const currentFilterType = this.#filterModel.currentFilter;
+    const filmsObjects = this.#filmsModel.filmsObjects;
+    const filteredFilmsArray = filtersObjWithFilteringFuncs[currentFilterType](filmsObjects);
+
     switch (this.#currentSortType) {
       case SortType.BY_DATE:
-        return [...this.#filmsModel.filmsObjects].sort(sortByDateFirstNewest);
+        return filteredFilmsArray.sort(sortByDateFirstNewest);
       case SortType.BY_RATING:
-        return [...this.#filmsModel.filmsObjects].sort(sortByRatingFirstHighest);
+        return filteredFilmsArray.sort(sortByRatingFirstHighest);
     }
-    //а если switch не отработал, возвращаю массив в исходном порядке, для сортировки по дефолту
-    return this.#filmsModel.filmsObjects;
+    //если switch не отработал, возвращаю массив в исходном порядке
+    return filteredFilmsArray;
   }
 
   init = () => {
@@ -54,7 +62,7 @@ export default class FilmListPresenter {
   }
 
   #renderFilm = (filmObj) => {
-    //для задачи самообновиться. сначала фиксирую старое, если было. и затем обновляю свойствa актуальным контентом
+
     const prevFilmComponent = this.#filmIdInstance.get(filmObj.id);
     //const prevFilmPopupComponent = this.#filmPopupComponent;
 
@@ -80,7 +88,6 @@ export default class FilmListPresenter {
   }
 
   #setEListenersOnFilmComponent = (filmObject) => {
-    //вызываю методы #filmComponent-а(view) и передаю в них КОЛБЭКАМИ методы самого презентера
     this.#filmComponent.setOnPosterClickHandler(() => this.#renderPopup(filmObject));
     this.#filmComponent.setToWatchlistClickHandler(() => this.#handleToWatchlistClick(filmObject));
     this.#filmComponent.setToHistoryClickHandler(() => this.#handleToHistoryClick(filmObject));
@@ -105,7 +112,7 @@ export default class FilmListPresenter {
     insertElement(this.#filmPopupComponent, this.#filmsListComponent, scrollYPosition);
     document.body.classList.add('hide-overflow');
     document.addEventListener('keydown', this.#onEscPopupKeyDown);
-    this.#setEListenersOnPopupComponent();
+    this.#setEListenersOnPopupComponent(filmObject, true, scrollYPosition);
 
     this.#filmComponent.element.querySelector('.film-card__link')
     //как проверить, снимается ли этот обработчик без аргумента??та же ли функция??
@@ -123,16 +130,16 @@ export default class FilmListPresenter {
   };
 
 
-  // К О Л Б Э К   В   М О Д Е Л Ь
-  // его ВЫЗЫВАЕТ МОДЕЛЬ(НАБЛЮДАТЕЛЬ), когда раздуплилась с задачей
-  // передадим его модели. жук updateType
-  //реагирует на изменение в модели
+  // К О Л Б Э К   В   М О Д Е Л Ь  (в addObserver)
   #handleModelEventComplete = (updateType, updatedObject) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        //this.#renderFilm(updatedObject) //или просто так???????
-        this.#renderFilm(this.#filmIdInstance.get(updatedObject.id));
+        this.#renderFilm(updatedObject);
+        //this.#renderFilm(this.#filmIdInstance.get(updatedObject.id));
         //тут вызвать рендерпопап??
+/*         if (isPopup) {
+          this.#renderPopup(updatedObject, popupYScroll);
+        } */
         break;
       case UpdateType.MINOR:
         //список постеров и ссылки сортировки при сортировке
@@ -143,33 +150,35 @@ export default class FilmListPresenter {
         //все перерисовать, связано с фильтрацией
         this.#clearBoard({resetRenderedFilmCards: true, resetSortType: true});
         this.#renderBoard();
+/*         if (isPopup) {
+          this.#renderPopup(updatedObject, popupYScroll);
+        } */
         break;
     }
   };
 
-  //передадим его вьюхам
-  //говорил что в filmObjectToUpdate только ЧАСТЬ объекта, который обновился
-  //реагирует на то что происходит с вьхами
   #handleViewUserActions = (updateType, actionType, filmObjectToUpdate, isPopup, popupYScroll) => {
 
     switch (actionType) {
-      case UserAction.UPDATE_FILM:
+      case UserAction.ADD_FILM_TO:
         this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
-        //надо это сюда???? или это надо в другом месте вообще
+        //надо это сюда?? или это надо в другом месте вообще
         //if (isPopup) {this.#renderPopup(filmObjectToUpdate, popupYScroll);}
         break;
-
-      //нужен ли отдельный метод в модели на сортировку фильмов?
-      //получаем порядок фильмов от модели ведь. или нам нафиг не надо ее дергатб по этому поводу
-      //case UserAction.UPDATE_FILM_LIST:
-        //this.
-
+      case UserAction.ADD_COMMENT:
+        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        //if (isPopup) {this.#renderPopup(filmObjectToUpdate, popupYScroll);}
+        break;
+      case UserAction.DELETE_COMMENT:
+        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        //if (isPopup) {this.#renderPopup(filmObjectToUpdate, popupYScroll);}
+        break;
+      //нужен ли отдельный тип действия и метод в модели на сортировку фильмов?
     }
 
   };
 
   // Р Е Р Е Н Д Е Р  - вместо #handleFilmChange теперь #handleViewUserActions
-  //ререндерю постер и/или попап. Передавать колбэком во view
   /*   #handleFilmChange = (updatedFilm, isPopup, popupYScroll) => {
     this.#renderFilm(updatedFilm);
     if (isPopup) {
@@ -185,7 +194,7 @@ export default class FilmListPresenter {
       UserAction.ADD_COMMENT,
       filmObj,
       true, popupYScroll
-    );//true тк только на попапе могу сабмитить комент
+    );
   };
 
   #onDeleteCommentClick = (filmObj, popupYScroll) => {
@@ -193,7 +202,7 @@ export default class FilmListPresenter {
       UpdateType.PATCH,
       UserAction.DELETE_COMMENT,
       filmObj,
-      true, popupYScroll //true тк только на попапе могу delete комент
+      true, popupYScroll
     );
   }
 
@@ -203,7 +212,6 @@ export default class FilmListPresenter {
     render(this.#filmBoardContainer, this.#sortItemsComponent, 'beforeend');
   };
 
-  //sortType берется из sort-view.js в #sortTypeChangeHandler из evt в this._callback.sortTypeChange(evt.target.dataset.sortType)
   #handleSortTypeChanging = (sortType) => {
     if (sortType === this.#currentSortType) {return;}
     this.#currentSortType = sortType;
@@ -322,9 +330,4 @@ export default class FilmListPresenter {
     );
   };
 
-
-  /*   #deleteFilm = (filmObject) => { //у них называется destroy в film-presenter
-    cutOffElement(this.#filmIdInstance.get(filmObj.id));
-    cutOffElement(this.#filmPopupComponent);//надо ли удалять?как привязать поап к фильмлистайтему?
-  } */
 }

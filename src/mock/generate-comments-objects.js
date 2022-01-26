@@ -1,6 +1,7 @@
 import {EMOJIS, COMMENT_AUTHORS, COMMENT_MESSAGES} from './constants.js';
 import {getRandomInteger, generateValueFromArray} from '../utils/utils.js';
 import dayjs from 'dayjs';
+import {nanoid} from 'nanoid';
 
 
 const generateCommentDate = (maxMinsAgo, maxDaysAgo) => {
@@ -16,6 +17,7 @@ const generateCommentDate = (maxMinsAgo, maxDaysAgo) => {
 };
 
 const generateComment = (emoji, message) => ({
+  id: nanoid(),
   emoji: emoji,
   date: generateCommentDate(3, 0),
   author: generateValueFromArray(COMMENT_AUTHORS),
@@ -27,6 +29,7 @@ const generateCommentsObjects = (number) => {
 
   for (let i = 0; i < number; i++) {
     const newCommentObj = {
+      id: nanoid(),
       emoji: generateValueFromArray(EMOJIS),
       date: generateCommentDate(719, 1825),
       author: generateValueFromArray(COMMENT_AUTHORS),

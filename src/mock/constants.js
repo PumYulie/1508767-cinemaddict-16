@@ -137,7 +137,7 @@ export const SortType = {
 
 export const UserAction = {
   ADD_FILM_TO: 'ADD_FILM_TO',
-  SORT_FILMS: 'SORT_FILMS', //уточнять вид: по дате по рейтингу по дефолту?
+  SORT_FILMS: 'SORT_FILMS', //нужно ли вообще?
   ADD_COMMENT: 'ADD_COMMENT',
   DELETE_COMMENT: 'DELETE_COMMENT'
 };

@@ -3,11 +3,13 @@ import AbstractClassView from './abstract-class-view.js';
 export default class SmartView extends AbstractClassView {
   _state = {};
 
+  //только для textarea
   updateStateNoRender = (updateObj) => {
     if (!updateObj) { return; }
     this._state = {...this._state, ...updateObj};
   };
 
+  //для всех действий, где интерфейс должен юзеру откликнуться визуальным изменением
   updateStateAndRender = (updateObj, yScrollPosition) => {
     if (!updateObj) {return;}
     this._state = {...this._state, ...updateObj};

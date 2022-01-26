@@ -2,9 +2,8 @@ import AbstractClassView from './abstract-class-view';
 
 const renderFilterHTML = (filterObject, currentFilterType) => {
   const {name, count, type} = filterObject;
-  const nameUppercased = name[0].toUpperCase() + name.slice(1);
 
-  return `<a href="#${name}" class="main-navigation__item ${currentFilterType === type ? 'main-navigation__item--active' : ''}">${nameUppercased}<span class="main-navigation__item-count">${count}</span></a>`;
+  return `<a href="#${name}" class="main-navigation__item ${currentFilterType === type ? 'main-navigation__item--active' : ''}" data-filter-type="${type}">${name}<span class="main-navigation__item-count">${count}</span></a>`;
 };
 
 const renderAllFiltersHTML = (filtersObjects, currentFilterType) => {
@@ -40,7 +39,6 @@ export default class FilterView extends AbstractClassView {
     if (evt.target.tagName !== 'A') { return; }
 
     evt.preventDefault();
-    //console.log(evt.target);
-    this._callback.filtersTypeChange();
+    this._callback.filtersTypeChange(evt.target.dataset.filterType);
   };
 }

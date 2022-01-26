@@ -32,7 +32,7 @@ const renderPopup = (state) => {
   const generateCommentsHTML = (commentObjs) => (
     `<ul class="film-details__comments-list">
       ${commentObjs.length > 0 ?
-      commentObjs.map( ({emoji, date, author, message}) =>
+      commentObjs.map( ({id, emoji, date, author, message}) =>
         `<li class="film-details__comment">
           <span class="film-details__comment-emoji">
             <img src="./images/emoji/${emoji}" width="55" height="55" alt="emoji-${emoji.slice(0, -4)}">
@@ -42,7 +42,7 @@ const renderPopup = (state) => {
             <p class="film-details__comment-info">
               <span class="film-details__comment-author">${author}</span>
               <span class="film-details__comment-day">${date}</span>
-              <button class="film-details__comment-delete">Delete</button>
+              <button class="film-details__comment-delete" data-id=${id}>Delete</button>
             </p>
           </div>
         </li>`).join('')
@@ -64,7 +64,6 @@ const renderPopup = (state) => {
         ${generateEmojiRadios()}
       </div>
     </div>`
-
   );
 
 
@@ -236,11 +235,13 @@ export default class PopupView extends SmartView {
 
     const commentFromForm = generateComment(this._state.selectedEmoji, this._state.commentText);
 
+    //сразу пользователю интерфейс меняю
     this.updateStateAndRender({
       ...this.#formInitialStateProps, //сброс редактируемых полей в состоянии
-      comment: [...this._state.comments, commentFromForm] //припушиваю коммент
-    });
-    //вызываю колбэк презентера(c актуальным объектом фильма) => ререндерю постер+попап
+      comments: [...this._state.comments, commentFromForm], //припуш коммента
+      commentsNumber: this._state.comments.length + 1
+    }, this.popupYScroll);
+    //и уже след шагом отправляю новые данные в модель для апдейта модели
     this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
 
   };
@@ -252,10 +253,20 @@ export default class PopupView extends SmartView {
   }
 
   #deleteCommentClickHandler = (evt) => {
-    if (evt.target.tagName !== 'BUTTON') {return;}
+    if (evt.target.tagName !== 'BUTTON' || !evt.target.dataset.id) {return;}
 
     evt.preventDefault();
     this.popupYScroll = this.element.scrollTop;
+
+    const updatedCommentsArray = this._state.comments.filter((comment) => comment.id !== evt.target.dataset.id);
+
+    //сначала сразу меняю юзеру интерфейс
+    this.updateStateAndRender({
+      comments: updatedCommentsArray,
+      commentsNumber: updatedCommentsArray.length
+    }, this.popupYScroll);
+
+    //а затем отправляю данные в модель для актуализации данных модели
     this._callback.deleteCommentHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
   }
 
@@ -276,7 +287,8 @@ export default class PopupView extends SmartView {
       .addEventListener('click', this.#toWatchlistClickHandler);
   }
 
-  #toWatchlistClickHandler = () => {
+  #toWatchlistClickHandler = (evt) => {
+    evt.preventDefault();
     this.popupYScroll = this.element.scrollTop;
     this._callback.toWatchlistClickHandler(PopupView.parseStateToFilmObject(this._state), true, this.popupYScroll);
   }

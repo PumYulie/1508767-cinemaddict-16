@@ -23,7 +23,7 @@ const siteMenu = new SiteMenuView();
 render(main, siteMenu, 'beforeend');
 
 
-const filmsPresenter = new FilmListPresenter(main, filmsModel);
+const filmsPresenter = new FilmListPresenter(main, filmsModel, filterModel);
 const filtersPresenter = new FilterPresenter(siteMenu, filterModel, filmsModel);
 
 filtersPresenter.init();
