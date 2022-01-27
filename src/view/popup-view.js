@@ -1,6 +1,7 @@
 import SmartView from './smart-view.js';
 import {EMOJIS_NAMES} from '../mock/constants.js';
 import {generateComment} from '../mock/generate-comments-objects.js';
+import he from 'he';
 
 const renderPopup = (state) => {
 
@@ -17,15 +18,15 @@ const renderPopup = (state) => {
     return genresContainer.innerHTML;
   };
 
-  const generateEmojiRadios = () => (
-    `${EMOJIS_NAMES.map((emoji) =>
-      `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
-      <label class="film-details__emoji-label" for="emoji-${emoji}">
-        <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="${emoji}">
-      </label>`)
-      .join('')
-    }`
+  const generateOneEmojiHTML = (emojiName) => (
+    `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emojiName}" value="${emojiName}">
+      <label class="film-details__emoji-label" for="emoji-${emojiName}">
+        <img src="./images/emoji/${emojiName}.png" width="30" height="30" alt="${emojiName}">
+      </label>`
   );
+
+  const generateEmojiRadiosHTML = () => EMOJIS_NAMES.map((emoji) => generateOneEmojiHTML(emoji)).join('');
+
 
   const activateBtnClass = (value) => value ? 'film-details__control-button--active' : '';
 
@@ -57,11 +58,11 @@ const renderPopup = (state) => {
       </div>
 
       <label class="film-details__comment-label">
-        <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${commentText}</textarea>
+        <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${he.encode(commentText)}</textarea>
       </label>
 
       <div class="film-details__emoji-list">
-        ${generateEmojiRadios()}
+        ${generateEmojiRadiosHTML()}
       </div>
     </div>`
   );
