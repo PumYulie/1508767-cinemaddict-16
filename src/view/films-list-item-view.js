@@ -1,12 +1,12 @@
 import AbstractClassView from './abstract-class-view';
 
 const renderFilmsListItem = (filmObj) => {
-  const {name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
+  const {id, name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
 
   const activateBtnClass = (value) => value ? 'film-card__controls-item--active' : '';
 
 
-  return `<article class="film-card">
+  return `<article class="film-card" data-id=${id}>
     <a class="film-card__link">
       <h3 class="film-card__title">${name}</h3>
       <p class="film-card__rating">${rating}</p>

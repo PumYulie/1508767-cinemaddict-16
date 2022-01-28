@@ -7,7 +7,7 @@ import FilterPresenter from './presenter/filters-presenter.js';
 import FilmsModel from './model/films-model.js';
 import FilterModel from './model/filter-model.js';
 
-const FILM_CARDS_COUNT = 7;
+const FILM_CARDS_COUNT = 3;
 
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');

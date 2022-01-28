@@ -36,7 +36,7 @@ const renderPopup = (state) => {
       commentObjs.map( ({id, emoji, date, author, message}) =>
         `<li class="film-details__comment">
           <span class="film-details__comment-emoji">
-            <img src="./images/emoji/${emoji}" width="55" height="55" alt="emoji-${emoji.slice(0, -4)}">
+            <img src="./images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji.slice(0, -4)}">
           </span>
           <div>
             <p class="film-details__comment-text">${message}</p>
@@ -189,7 +189,7 @@ export default class PopupView extends SmartView {
 
   restoreHandlers = () => {
     this.#setInnerELHandlers();
-    this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);//не работает
+    this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);
     this.setDeleteCommentClickHandler(this._callback.deleteCommentHandler);
 
     this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
@@ -208,12 +208,14 @@ export default class PopupView extends SmartView {
 
   #radioEmojiChangeHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {return;}
+    evt.stopPropagation();
     this.popupYScroll = this.element.scrollTop;
     this.updateStateAndRender({selectedEmoji: evt.target.value}, this.popupYScroll);
   };
 
   #commentTextareaInputHandler = (evt) => {
-    //evt.preventDefault();//а нужно что-то дефолтное предотвращать?
+    evt.preventDefault();//а нужно что-то дефолтное предотвращать?
+    evt.stopPropagation();
     this.updateStateNoRender({
       commentText: evt.target.value,
     });
@@ -232,6 +234,7 @@ export default class PopupView extends SmartView {
     if (!this._state.selectedEmoji || !this._state.commentText) {
       return;
     }
+    evt.stopPropagation();
     this.popupYScroll = this.element.scrollTop;
 
     const commentFromForm = generateComment(this._state.selectedEmoji, this._state.commentText);

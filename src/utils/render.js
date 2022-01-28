@@ -45,7 +45,6 @@ const insertElement = (componentToBeChild, componentToBeParent, popupScrollY) =>
 
 const cutOffElement = (componentToRemove) => {
   const child = getElementPropIfAny(componentToRemove);
-
   child.remove();
   componentToRemove.removeElement();
 };

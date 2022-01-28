@@ -1,4 +1,4 @@
-import {EMOJIS, COMMENT_AUTHORS, COMMENT_MESSAGES} from './constants.js';
+import {EMOJIS_NAMES, COMMENT_AUTHORS, COMMENT_MESSAGES} from './constants.js';
 import {getRandomInteger, generateValueFromArray} from '../utils/utils.js';
 import dayjs from 'dayjs';
 import {nanoid} from 'nanoid';
@@ -30,7 +30,7 @@ const generateCommentsObjects = (number) => {
   for (let i = 0; i < number; i++) {
     const newCommentObj = {
       id: nanoid(),
-      emoji: generateValueFromArray(EMOJIS),
+      emoji: generateValueFromArray(EMOJIS_NAMES),
       date: generateCommentDate(719, 1825),
       author: generateValueFromArray(COMMENT_AUTHORS),
       message: generateValueFromArray(COMMENT_MESSAGES),
