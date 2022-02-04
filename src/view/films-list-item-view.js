@@ -1,7 +1,17 @@
-import AbstractClassView from './abstract-class-view';
+import AbstractClassView from './abstract-class-view.js';
+import TimeFormat from '../utils/time-formats.js';
+
+const SHORT_DESCRIPTION_LENGTH = 139;
 
 const renderFilmsListItem = (filmObj) => {
-  const {id, name, poster, rating, releaseYear, runTime, genre, shortDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
+  const {id, name, poster, rating, releaseDate, runTime, genres, fullDescription, commentsNumber, inWatchList, alreadyWatched, inFavorites} = filmObj;
+
+  const releaseYear = TimeFormat.getDate(releaseDate, 'YYYY');
+  const genre = genres[0];
+
+  const shortenDescription = (description) => (
+    description.length > SHORT_DESCRIPTION_LENGTH ? `${description.slice(0, SHORT_DESCRIPTION_LENGTH)}…` : description
+  );
 
   const activateBtnClass = (value) => value ? 'film-card__controls-item--active' : '';
 
@@ -16,7 +26,7 @@ const renderFilmsListItem = (filmObj) => {
         <span class="film-card__genre">${genre}</span>
       </p>
       <img src="${poster}" alt="" class="film-card__poster">
-      <p class="film-card__description">${shortDescription}</p>
+      <p class="film-card__description">${shortenDescription(fullDescription)}</p>
       <span class="film-card__comments">${commentsNumber} comments</span>
     </a>
     <div class="film-card__controls">

@@ -22,7 +22,7 @@ export default class FilmsModel extends AbstractObservable {
     } catch (err) {
       this.#filmsObjects = [];
     }
-    console.log(this.#filmsObjects);
+    //console.log(this.#filmsObjects);
     this._notifyObservers(UpdateType.INIT);
   }
 
@@ -48,10 +48,8 @@ export default class FilmsModel extends AbstractObservable {
       name: filmObj.film_info.title,
       poster: filmObj.film_info.poster,
       rating: filmObj.film_info.total_rating,
-      releaseYear: filmObj.film_info.release.date,
+      releaseDate: new Date(filmObj.film_info.release.date),
       runTime: filmObj.film_info.runtime,
-      genre: filmObj.film_info.genre[0],
-      shortDescription: `${filmObj.film_info.description.slice(0, 139)}…`,
 
       commentsNumber: filmObj.comments.length,
       comments: filmObj.comments, //дб commentObjects прямо тут
@@ -59,13 +57,12 @@ export default class FilmsModel extends AbstractObservable {
       inWatchList: filmObj.user_details.already_watched,
       alreadyWatched: filmObj.user_details.watchlist,
       inFavorites: filmObj.user_details.watchlist,
-      watchingDate: filmObj.user_details.watching_date,
+      watchingDate: new Date(filmObj.user_details.watching_date),
 
       originalName: filmObj.film_info.alternative_title,
       director: filmObj.film_info.director,
       writers: filmObj.film_info.writers,
       actors: filmObj.film_info.actors,
-      releaseDate: new Date(filmObj.film_info.release.date),
       country: filmObj.film_info.release.release_country,
       genres: filmObj.film_info.genre,
       fullDescription: filmObj.film_info.description,
