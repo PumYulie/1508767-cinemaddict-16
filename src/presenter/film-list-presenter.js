@@ -6,7 +6,7 @@ import SortItemsView from '../view/sort-view.js';
 import FilmListView from '../view/films-list-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
 import NoFilmsView from '../view/no-films-view.js';
-
+import LoadingView from '../view/loading-view.js';
 import FilmListItemView from '../view/films-list-item-view.js';
 import PopupView from '../view/popup-view.js';
 
@@ -21,6 +21,7 @@ export default class FilmListPresenter {
   #filmIdInstance = new Map();
   #currentSortType = SortType.DEFAULT;
   #currentFilterType = FilterType.ALL_FILMS;
+  #isLoading = true;
   #popupId = null;
 
   #filmBoardContainer = null;
@@ -28,6 +29,7 @@ export default class FilmListPresenter {
   #filmPopupComponent = null;
 
   #filmsListComponent = new FilmListView();
+  #loadingComponent = new LoadingView();
   #showMoreButtonComponent = null;
   #noFilmsComponent = null;
   #sortItemsComponent = null;
@@ -138,6 +140,11 @@ export default class FilmListPresenter {
         this.#clearBoard({resetRenderedFilmCards: true, resetSortType: true});
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        cutOffElement(this.#loadingComponent);
+        this.#renderBoard();
+        break;
     }
   };
 
@@ -211,6 +218,10 @@ export default class FilmListPresenter {
       cutOffElement(this.#noFilmsComponent);
     }
 
+    if(this.#loadingComponent) {
+      cutOffElement(this.#loadingComponent);
+    }
+
     if (resetRenderedFilmCards) {
       this.#renderedFilmCards = FILMS_PER_STEP;
     } else { //если перерисовка доски вызвана уменьшением числа фильмов(архив или удаление из списка), корректирую число отрисованных задач
@@ -223,6 +234,11 @@ export default class FilmListPresenter {
   }
 
   #renderBoard = () => {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     const films = this.filmsObjects;
     const filmsAmount = films.length;
 
@@ -238,7 +254,11 @@ export default class FilmListPresenter {
     if (filmsAmount > this.#renderedFilmCards) {
       this.#renderShowMoreButton();
     }
-  }
+  };
+
+  #renderLoading = () => {
+    render(this.#filmBoardContainer, this.#loadingComponent, 'beforeend');
+  };
 
   #renderNoFilm = () => {
     this.#noFilmsComponent = new NoFilmsView(this.#currentFilterType);

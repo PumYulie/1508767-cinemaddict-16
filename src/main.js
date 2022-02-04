@@ -1,20 +1,20 @@
 import {render} from './utils/render.js';
 import UserName from './view/user-name-view.js';
 import SiteMenuView from './view/site-menu-view.js';
-import {generateFilmObject} from './mock/generate-film-object.js';
 import FilmListPresenter from './presenter/film-list-presenter.js';
 import FilterPresenter from './presenter/filters-presenter.js';
+import APIService from './api-service.js';
 import FilmsModel from './model/films-model.js';
 import FilterModel from './model/filter-model.js';
 
-const FILM_CARDS_COUNT = 3;
+
+const END_POINT = 'https://16.ecmascript.pages.academy/cinemaddict/';
+const AUTHORIZATION = 'Basic q4a354e5r68t79p';
 
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');
 
-const filmsModel = new FilmsModel();
-const mockFilmObjects = Array.from({length: FILM_CARDS_COUNT}, generateFilmObject);
-filmsModel.filmsObjects = mockFilmObjects;
+const filmsModel = new FilmsModel(new APIService(END_POINT, AUTHORIZATION));
 const filterModel = new FilterModel();
 
 
@@ -29,5 +29,4 @@ const filtersPresenter = new FilterPresenter(siteMenu, filterModel, filmsModel);
 filtersPresenter.init();
 filmsPresenter.init();
 
-
-export {FILM_CARDS_COUNT};
+filmsModel.init();

@@ -5,7 +5,7 @@ import he from 'he';
 
 const renderPopup = (state) => {
 
-  const {name, poster, rating, runTime, commentsNumber, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, comments, inWatchList, alreadyWatched, inFavorites, selectedEmoji, commentText} = state;
+  const {name, poster, rating, runTime, commentsNumber, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, inWatchList, alreadyWatched, inFavorites, comments, selectedEmoji, commentText} = state;
 
   const generateGenres = (array) => {
     const genresContainer = document.createElement('div');
@@ -76,7 +76,7 @@ const renderPopup = (state) => {
       </div>
       <div class="film-details__info-wrap">
         <div class="film-details__poster">
-          <img class="film-details__poster-img" src="./images/posters/${poster}" alt="">
+          <img class="film-details__poster-img" src="${poster}" alt="">
 
           <p class="film-details__age">${ageFilter}</p>
         </div>

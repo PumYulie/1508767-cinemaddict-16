@@ -27,6 +27,7 @@ const generateFilmObject = () => {
 
   return {
     id: nanoid(),
+
     name: generateValueFromArray(FILM_NAMES),
     poster: generateValueFromArray(POSTERS),
     rating: getRandomFloat(),
