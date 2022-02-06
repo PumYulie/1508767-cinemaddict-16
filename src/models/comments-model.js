@@ -1,4 +1,5 @@
 import AbstractObservable from './abstract-observable.js';
+import {UpdateType} from '../mock/constants.js';
 
 export default class CommentsModel extends AbstractObservable {
   #commentsObjects = [];
@@ -17,15 +18,55 @@ export default class CommentsModel extends AbstractObservable {
     return this.#commentsObjects;
   }
 
-  addComment = async (updateType, update, filmId) => {
+  getCommentsForPopup = async (filmId) => {
     try {
-      const commentsObjsFromServer = await this.#apiService.
-    } catch {
+      const responseWithComments = await this.#apiService.getCommentsObjects(filmId);
+      this.#commentsObjects = responseWithComments.map((comment) => this.#adaptResponseToClient(comment));
+    } catch(err) {
+      this.#commentsObjects = [];
+    }
 
+    //!!!!!!!поправь UpdateType!!!!
+    this._notifyObservers(UpdateType.COMMENTS_READY);
+
+  }
+
+  addComment = async (updateType, commentObj, filmId) => {
+    try {
+      const response = await this.#apiService.addComment(commentObj, filmId);
+      const adaptedResponse = this.#adaptResponseToClient(response);
+      this.#commentsObjects = [...this.#commentsObjects, adaptedResponse];
+      this._notifyObservers(updateType, adaptedResponse);
+    } catch(err) {
+      throw new Error('Can\'t add a new comment');
     }
   };
 
-  deleteComment = async () => {
+  deleteComment = async (updateType, commentObj) => {
+    const indexOfCommentToDelete = this.#commentsObjects.findIndex((comment) => comment.id === commentObj.id);
 
+    if (indexOfCommentToDelete === -1) {
+      throw new Error('Can\'t delete an unexisting comment');
+    }
+
+    try {
+      await this.#apiService.deleteComment(commentObj);
+      this.#commentsObjects = [
+        ...this.#commentsObjects(0, indexOfCommentToDelete),
+        ...this.#commentsObjects(indexOfCommentToDelete + 1)
+      ];
+      this._notifyObservers(updateType);
+    } catch(err) {
+      throw new Error('Can\'t delete a comment');
+    }
+  };
+
+  //получаю от сервера и обрабатываю перед рендерингом
+  #adaptResponseToClient = (commentObj) => {
+    const adaptedCommentObject = {
+      ...commentObj,
+      date: new Date(commentObj.date)
+    };
+    return adaptedCommentObject;
   };
 }

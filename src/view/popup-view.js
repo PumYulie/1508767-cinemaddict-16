@@ -1,15 +1,18 @@
 import SmartView from './smart-view.js';
-import {EMOJIS_NAMES} from '../mock/constants.js';
-import {generateComment} from '../mock/generate-comments-objects.js';
-import he from 'he';
 
-const renderPopup = (state) => {
+//import {EMOJIS_NAMES} from '../mock/constants.js';
+//import {generateComment} from '../mock/generate-comments-objects.js';
+//import he from 'he';
 
-  const {name, poster, rating, runTime, commentsNumber, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, inWatchList, alreadyWatched, inFavorites, comments, selectedEmoji, commentText} = state;
+const renderPopup = (filmObj) => {
 
-  const generateGenres = (array) => {
+  const {name, poster, rating, runTime, originalName, director, writers, actors, releaseDate, country, genres, fullDescription, ageFilter, inWatchList, alreadyWatched, inFavorites} = filmObj;
+
+  //const {comments, commentsNumber, selectedEmoji, commentText} = state;
+
+  const generateGenres = () => {
     const genresContainer = document.createElement('div');
-    for (const genre of array) {
+    for (const genre of genres) {
       const span = document.createElement('span');
       span.classList.add('film-details__genre');
       span.innerHTML = genre;
@@ -18,28 +21,28 @@ const renderPopup = (state) => {
     return genresContainer.innerHTML;
   };
 
-  const generateOneEmojiHTML = (emojiName) => (
+/*   const generateOneEmojiHTML = (emojiName) => (
     `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emojiName}" value="${emojiName}">
       <label class="film-details__emoji-label" for="emoji-${emojiName}">
         <img src="./images/emoji/${emojiName}.png" width="30" height="30" alt="${emojiName}">
       </label>`
   );
 
-  const generateEmojiRadiosHTML = () => EMOJIS_NAMES.map((emoji) => generateOneEmojiHTML(emoji)).join('');
+  const generateEmojiRadiosHTML = () => EMOJIS_NAMES.map((emoji) => generateOneEmojiHTML(emoji)).join(''); */
 
 
   const activateBtnClass = (value) => value ? 'film-details__control-button--active' : '';
 
-  const generateCommentsHTML = (commentObjs) => (
+/*   const generateCommentsHTML = (commentObjs) => (
     `<ul class="film-details__comments-list">
       ${commentObjs.length > 0 ?
-      commentObjs.map( ({id, emoji, date, author, message}) =>
+      commentObjs.map( ({id, emotion, date, author, comment}) =>
         `<li class="film-details__comment">
           <span class="film-details__comment-emoji">
-            <img src="./images/emoji/${emoji}.png" width="55" height="55" alt="emoji-${emoji.slice(0, -4)}">
+            <img src="./images/emoji/${emotion}.png" width="55" height="55" alt="emoji-${emotion}">
           </span>
           <div>
-            <p class="film-details__comment-text">${message}</p>
+            <p class="film-details__comment-text">${comment}</p>
             <p class="film-details__comment-info">
               <span class="film-details__comment-author">${author}</span>
               <span class="film-details__comment-day">${date}</span>
@@ -49,9 +52,9 @@ const renderPopup = (state) => {
         </li>`).join('')
       : '' }
     </ul>`
-  );
+  ); */
 
-  const generateFormHTML = () => (
+/*   const generateFormHTML = () => (
     `<div class="film-details__new-comment">
       <div class="film-details__add-emoji-label">
         ${selectedEmoji ? `<img src="images/emoji/${selectedEmoji}.png" width="55" height="55" alt="emoji-${selectedEmoji}">` : ''}
@@ -65,7 +68,7 @@ const renderPopup = (state) => {
         ${generateEmojiRadiosHTML()}
       </div>
     </div>`
-  );
+  ); */
 
 
   return `<section class="film-details">
@@ -121,7 +124,7 @@ const renderPopup = (state) => {
             <tr class="film-details__row">
               <td class="film-details__term">Genres</td>
               <td class="film-details__cell">
-                ${generateGenres(genres)}
+                ${generateGenres()}
               </td>
             </tr>
           </table>
@@ -140,57 +143,49 @@ const renderPopup = (state) => {
       </section>
     </div>
 
-    <div class="film-details__bottom-container">
-      <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentsNumber}</span></h3>
-
-        ${generateCommentsHTML(comments)}
-        ${generateFormHTML()}
-
-      </section>
-    </div>
   </form>
 </section>`;
 };
 
 
 export default class PopupView extends SmartView {
-  #formInitialStateProps = null;
+  //#formInitialStateProps = null;
+  #filmObject = null;
 
   constructor(filmObj) {
     super();
-    this.#formInitialStateProps = {
+/*     this.#formInitialStateProps = {
       selectedEmoji: '',
       commentText: '',
       srollPosition: 0
-    };
+    }; */
     //создаю объект начального состояния по данным
-    this._state = PopupView.parseFilmObjectToState(filmObj, this.#formInitialStateProps);
-
+    //this._state = PopupView.parseFilmObjectToState(filmObj, this.#formInitialStateProps);
+    this.#filmObject = filmObj;
     this.popupYScroll = null;
 
-    this.#setInnerELHandlers();
+    //this.#setInnerELHandlers();
   }
 
   get template() {
-    return renderPopup(this._state);
+    return renderPopup(this.#filmObject);
   }
 
   //создаю начальное состояние из объекта. обогащаю полями с изначальным состоянием формы
-  static parseFilmObjectToState = (filmObject, formStateProps) => ({...filmObject, ...formStateProps})
+  //static parseFilmObjectToState = (filmObject, formStateProps) => ({...filmObject, ...formStateProps})
 
   //состояние в объект. вызываю, когда жмут кнопки для сабмита коментария
-  static parseStateToFilmObject = (state) => {
+/*   static parseStateToFilmObject = (state) => {
     const filmObject = {...state};
     delete filmObject.selectedEmoji;
     delete filmObject.commentText;
     return filmObject;
-  }
+  } */
 
   restoreHandlers = () => {
-    this.#setInnerELHandlers();
-    this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);
-    this.setDeleteCommentClickHandler(this._callback.deleteCommentHandler);
+    //this.#setInnerELHandlers();
+    //this.setFormSubmitKeyDown(this._callback.commentSubmitHandler);
+    //this.setDeleteCommentClickHandler(this._callback.deleteCommentHandler);
 
     this.setOnCloseBtnClick(this._callback.onCloseBtnClick);
     this.setToWatchlistClickHandler(this._callback.toWatchlistClickHandler);
@@ -199,14 +194,14 @@ export default class PopupView extends SmartView {
   };
 
   //как создался попап я на его кнопки накидываю слушатели
-  #setInnerELHandlers = () => {
+/*   #setInnerELHandlers = () => {
     this.element.querySelector('.film-details__emoji-list')
       .addEventListener('change', this.#radioEmojiChangeHandler);
     this.element.querySelector('.film-details__comment-input')
       .addEventListener('input', this.#commentTextareaInputHandler);
-  };
+  }; */
 
-  #radioEmojiChangeHandler = (evt) => {
+/*   #radioEmojiChangeHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {return;}
     evt.stopPropagation();
     this.popupYScroll = this.element.scrollTop;
@@ -219,10 +214,10 @@ export default class PopupView extends SmartView {
     this.updateStateNoRender({
       commentText: evt.target.value,
     });
-  };
+  }; */
 
-  //задача метода - навесить слушатель с конкретным обработчиком-колбэком из презентера
-  setFormSubmitKeyDown = (callback) => {
+  //навесить слушатель с конкретным обработчиком-колбэком из презентера
+/*   setFormSubmitKeyDown = (callback) => {
     this._callback.commentSubmitHandler = callback;
     document.addEventListener('keydown', this.#formSubmitHandler);
   };
@@ -248,10 +243,10 @@ export default class PopupView extends SmartView {
     //и уже след шагом отправляю новые данные в модель для апдейта модели
     this._callback.commentSubmitHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
 
-  };
+  }; */
 
 
-  setDeleteCommentClickHandler = (callback) => {
+/*   setDeleteCommentClickHandler = (callback) => {
     this._callback.deleteCommentHandler = callback;
     this.element.querySelector('.film-details__comments-list').addEventListener('click', this.#deleteCommentClickHandler);
   }
@@ -272,7 +267,7 @@ export default class PopupView extends SmartView {
 
     //а затем отправляю данные в модель для актуализации данных модели
     this._callback.deleteCommentHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
-  }
+  } */
 
 
   setOnCloseBtnClick = (callback) => {
@@ -321,3 +316,16 @@ export default class PopupView extends SmartView {
     this._callback.toFavoritesClickHandler(PopupView.parseStateToFilmObject(this._state), true, this.popupYScroll);
   };
 }
+
+
+/*
+<div class="film-details__bottom-container">
+      <section class="film-details__comments-wrap">
+        <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentsNumber}</span></h3>
+
+        ${generateCommentsHTML(comments)}
+        ${generateFormHTML()}
+
+      </section>
+    </div>
+*/

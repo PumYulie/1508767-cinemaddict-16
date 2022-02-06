@@ -146,7 +146,8 @@ export const UpdateType = {
   PATCH: 'PATCH',//только карточку и попап(если был)
   MINOR: 'MINOR',//список постеров (и попап если был) и сортировка
   MAJOR: 'MAJOR', //ререндер строки Watchlist/History/Favorites, сортировки(?????), списка постеров(если стою в фаворитах и удаляю из фаворитов), сам изменившийся постер и попап(если открыт)
-  INIT: 'INIT'
+  INIT: 'INIT',
+  COMMENTS_UPLOADED: 'COMMENTS_READY'
 };
 
 export const FilterType = {

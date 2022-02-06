@@ -9,12 +9,14 @@ import NoFilmsView from '../view/no-films-view.js';
 import LoadingView from '../view/loading-view.js';
 import FilmListItemView from '../view/films-list-item-view.js';
 import PopupView from '../view/popup-view.js';
+import CommentsAndFormView from '../view/comments-view.js';
 
 const FILMS_PER_STEP = 5;
 
 
 export default class FilmListPresenter {
   #filmsModel = null;
+  #commentsModel = null;
   #filterModel = null;
 
   #renderedFilmCards = FILMS_PER_STEP;
@@ -23,10 +25,12 @@ export default class FilmListPresenter {
   #currentFilterType = FilterType.ALL_FILMS;
   #isLoading = true;
   #popupId = null;
+  #currentCommentsArray = null;
 
   #filmBoardContainer = null;
   #filmComponent = null;
   #filmPopupComponent = null;
+  #popupCommentsComponent = null;
 
   #filmsListComponent = new FilmListView();
   #loadingComponent = new LoadingView();
@@ -35,13 +39,15 @@ export default class FilmListPresenter {
   #sortItemsComponent = null;
 
 
-  constructor(filmBoardContainer, filmsModel, filterModel) {
+  constructor(filmBoardContainer, filmsModel, filterModel, commentsModel) {
     this.#filmBoardContainer = filmBoardContainer;
     this.#filmsModel = filmsModel;
     this.#filterModel = filterModel;
+    this.#commentsModel = commentsModel;
 
     this.#filmsModel.addObserver(this.#handleModelEventComplete);
     this.#filterModel.addObserver(this.#handleModelEventComplete);
+    this.#commentsModel.addObserver(this.#handleModelEventComplete);
   }
 
   get filmsObjects () {
@@ -57,6 +63,10 @@ export default class FilmListPresenter {
     }
     //если switch не отработал, возвращаю массив в исходном порядке
     return filteredFilmsArray;
+  }
+
+  get commentsObjects () {
+    return this.#commentsModel.commentsObjects;
   }
 
   init = () => {
@@ -94,41 +104,47 @@ export default class FilmListPresenter {
   }
 
   #renderPopup = (filmObject, scrollYPosition) => {
-    //|| this.#filmPopupComponent.element.dataset.id !== this.#popupId
+
     if (this.#filmPopupComponent) {
       cutOffElement(this.#filmPopupComponent);
       this.#popupId = null;
+      cutOffElement(this.#popupCommentsComponent);
     }
 
     this.#filmPopupComponent = new PopupView(filmObject);
     this.#popupId = this.#filmComponent.element.dataset.id;
-
     insertElement(this.#filmPopupComponent, this.#filmsListComponent, scrollYPosition);
+
+    const containerForComments = this.#filmPopupComponent.element.querySelector('.film-details__inner');
+    this.#popupCommentsComponent = new CommentsAndFormView(this.commentsObjects);
+    insertElement(this.#popupCommentsComponent, containerForComments, scrollYPosition);
+
     document.body.classList.add('hide-overflow');
     document.addEventListener('keydown', this.#onEscPopupKeyDown);
     this.#setEListenersOnPopupComponent(filmObject, true, scrollYPosition);
+    this.#setEListenersOnCommentsComponent();
 
     this.#filmComponent.element.querySelector('.film-card__link')
-    //как проверить, снимается ли этот обработчик без аргумента??та же ли функция??
       .removeEventListener('click', this.#renderPopup);
   };
 
   #setEListenersOnPopupComponent = () => {
-    this.#filmPopupComponent.setFormSubmitKeyDown(this.#onCommentSubmitKeyDown);
     this.#filmPopupComponent.setOnCloseBtnClick(this.#onCloseFilmPopupClick);
-    this.#filmPopupComponent.setDeleteCommentClickHandler(this.#onDeleteCommentClick);
-
     this.#filmPopupComponent.setToWatchlistClickHandler(this.#handleToWatchlistClick);
     this.#filmPopupComponent.setToHistoryClickHandler(this.#handleToHistoryClick);
     this.#filmPopupComponent.setToFavoritesClickHandler(this.#handleToFavoritesClick);
   };
 
+  #setEListenersOnCommentsComponent = () => {
+    this.#popupCommentsComponent.setFormSubmitKeyDown(this.#onCommentSubmitKeyDown);
+    this.#popupCommentsComponent.setDeleteCommentClickHandler(this.#onDeleteCommentClick);
+  };
 
-  // К О Л Б Э К   В   М О Д Е Л Ь  (в addObserver)
-  #handleModelEventComplete = (updateType, updatedObject) => {
+  // К О Л Б Э К   В   М О Д Е Л Ь  (в addObserver(here))
+  #handleModelEventComplete = (updateType, updatedFilmObject) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#renderFilm(updatedObject);
+        this.#renderFilm(updatedFilmObject);
         break;
       case UpdateType.MINOR:
         //список постеров и ссылки сортировки при сортировке
@@ -136,45 +152,49 @@ export default class FilmListPresenter {
         this.#renderBoard();
         break;
       case UpdateType.MAJOR:
-        //все перерисовать, связано с фильтрацией
         this.#clearBoard({resetRenderedFilmCards: true, resetSortType: true});
         this.#renderBoard();
         break;
-      case UpdateType.INIT:
+      case UpdateType.INIT: //модель получила объекты фильмов
         this.#isLoading = false;
         cutOffElement(this.#loadingComponent);
         this.#renderBoard();
         break;
+/*       case UpdateType.COMMENTS_READY: //comments-model получила коменты к фильму
+        this.#renderPopup();
+        break; */
     }
   };
 
-  #handleViewUserActions = (updateType, actionType, filmObjectToUpdate, isPopup, popupYScroll) => {
+  // К О Л Б Э К  в разные  ВЬЮХИ
+  #handleViewUserActions = async (updateType, actionType, update, isPopup, popupYScroll) => {
 
     switch (actionType) {
       case UserAction.ADD_FILM_TO:
-        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        await this.#filmsModel.updateFilm(updateType, update);
         break;
       case UserAction.ADD_COMMENT:
-        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        //addComment(updateType, commentObj, filmId)
+        await this.#commentsModel.addComment(updateType, update);
         break;
       case UserAction.DELETE_COMMENT:
-        this.#filmsModel.updateFilm(updateType, filmObjectToUpdate);
+        //deleteComment (updateType, commentObj)
+        await this.#commentsModel.deleteComment(updateType, update);
         break;
       //нужен ли отдельный тип действия и метод в модели на сортировку фильмов?
     }
 
     if (isPopup && this.#popupId === this.#filmComponent.element.dataset.id) {
-      this.#renderPopup(filmObjectToUpdate, popupYScroll);
+      this.#renderPopup(update, popupYScroll);
     }
   };
 
 
-  #onCommentSubmitKeyDown = (filmObj, popupYScroll) => {//аргументом объект с новым состоянием
-    //теперь перерисовываю мелкий постер и попап
+  #onCommentSubmitKeyDown = (commentObj, popupYScroll) => {//аргументом объект с новым состоянием
     this.#handleViewUserActions(
       UpdateType.PATCH,
       UserAction.ADD_COMMENT,
-      filmObj,
+      commentObj,
       true, popupYScroll
     );
   };
@@ -184,7 +204,8 @@ export default class FilmListPresenter {
       UpdateType.PATCH,
       UserAction.DELETE_COMMENT,
       filmObj,
-      true, popupYScroll
+      true,
+      popupYScroll
     );
   }
 
@@ -209,6 +230,7 @@ export default class FilmListPresenter {
 
     cutOffElement(this.#sortItemsComponent);
     cutOffElement(this.#filmsListComponent);
+    cutOffElement(this.#loadingComponent);
 
     if (this.#showMoreButtonComponent) {
       cutOffElement(this.#showMoreButtonComponent);
@@ -216,10 +238,6 @@ export default class FilmListPresenter {
 
     if (this.#noFilmsComponent) {
       cutOffElement(this.#noFilmsComponent);
-    }
-
-    if(this.#loadingComponent) {
-      cutOffElement(this.#loadingComponent);
     }
 
     if (resetRenderedFilmCards) {
@@ -242,7 +260,7 @@ export default class FilmListPresenter {
     const films = this.filmsObjects;
     const filmsAmount = films.length;
 
-    if (this.filmsObjects.length === 0) {
+    if (filmsAmount === 0) {
       this.#renderNoFilm();
       return;
     }

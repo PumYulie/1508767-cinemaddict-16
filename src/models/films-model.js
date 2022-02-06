@@ -22,25 +22,30 @@ export default class FilmsModel extends AbstractObservable {
     } catch (err) {
       this.#filmsObjects = [];
     }
-    //console.log(this.#filmsObjects);
+    //модель получила объекты фильмов
     this._notifyObservers(UpdateType.INIT);
   }
 
 
-  updateFilm = (updateType, filmToUpdate) => {
+  updateFilm = async (updateType, filmToUpdate) => {
     const index = this.filmsObjects.findIndex((item) => item.id === filmToUpdate.id);
 
     if (index === -1) {
       throw new Error('cant update, film doesnt exist');
     }
 
-    this.filmsObjects = [
-      ...this.filmsObjects.slice(0, index),
-      filmToUpdate,
-      ...this.filmsObjects.slice(index + 1),
-    ];
-
-    this._notifyObservers(updateType, filmToUpdate);
+    try {
+      const response = await this.#apiService.updateFilmObject(filmToUpdate);
+      const updatedFilmObj = this.#adaptResponseToClient(response);
+      this.filmsObjects = [
+        ...this.filmsObjects.slice(0, index),
+        updatedFilmObj,
+        ...this.filmsObjects.slice(index + 1),
+      ];
+      this._notifyObservers(updateType, updatedFilmObj);
+    } catch(err) {
+      throw new Error('Can\'t update the film');
+    }
   };
 
   #adaptResponseToClient = (filmObj) => {
@@ -74,6 +79,6 @@ export default class FilmsModel extends AbstractObservable {
     //что делать с adaptedFilmObject.comments ??
 
     return adaptedFilmObject;
-  }
+  };
 
 }

@@ -4,8 +4,9 @@ import SiteMenuView from './view/site-menu-view.js';
 import FilmListPresenter from './presenter/film-list-presenter.js';
 import FilterPresenter from './presenter/filters-presenter.js';
 import APIService from './api-service.js';
-import FilmsModel from './model/films-model.js';
-import FilterModel from './model/filter-model.js';
+import FilmsModel from './models/films-model.js';
+import FilterModel from './models/filter-model.js';
+import CommentsModel from './models/comments-model.js';
 
 
 const END_POINT = 'https://16.ecmascript.pages.academy/cinemaddict/';
@@ -14,19 +15,20 @@ const AUTHORIZATION = 'Basic q4a354e5r68t79p';
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');
 
-const filmsModel = new FilmsModel(new APIService(END_POINT, AUTHORIZATION));
+const apiService = new APIService(END_POINT, AUTHORIZATION);
+const filmsModel = new FilmsModel(apiService);
 const filterModel = new FilterModel();
+const commentsModel = new CommentsModel(apiService);
 
-
-render(header, new UserName(), 'beforeend');
 const siteMenu = new SiteMenuView();
-render(main, siteMenu, 'beforeend');
 
-
-const filmsPresenter = new FilmListPresenter(main, filmsModel, filterModel);
+const filmsPresenter = new FilmListPresenter(main, filmsModel, filterModel, commentsModel);
 const filtersPresenter = new FilterPresenter(siteMenu, filterModel, filmsModel);
 
 filtersPresenter.init();
 filmsPresenter.init();
 
-filmsModel.init();
+filmsModel.init().finally(() => {
+  render(header, new UserName(), 'beforeend');
+  render(main, siteMenu, 'afterbegin');
+});

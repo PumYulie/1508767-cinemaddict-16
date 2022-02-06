@@ -11,6 +11,6 @@ export default class FilterModel extends AbstractObservable {
   setCurrentFilter = (updateType, currentFilter) => {
     this.#currentFilter = currentFilter;
 
-    this.notifyObservers(updateType, this.#currentFilter);
+    this._notifyObservers(updateType, this.#currentFilter);
   }
 }

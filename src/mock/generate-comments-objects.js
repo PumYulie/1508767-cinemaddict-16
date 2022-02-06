@@ -18,10 +18,10 @@ const generateCommentDate = (maxMinsAgo, maxDaysAgo) => {
 
 const generateComment = (emoji, message) => ({
   id: nanoid(),
-  emoji: emoji,
+  emotion: emoji,
   date: generateCommentDate(3, 0),
   author: generateValueFromArray(COMMENT_AUTHORS),
-  message: message,
+  comment: message,
 });
 
 const generateCommentsObjects = (number) => {
