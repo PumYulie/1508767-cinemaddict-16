@@ -25,18 +25,20 @@ export default class CommentsModel extends AbstractObservable {
     } catch(err) {
       this.#commentsObjects = [];
     }
-
+    //console.log('2', this.#commentsObjects);
     //!!!!!!!поправь UpdateType!!!!
-    this._notifyObservers(UpdateType.COMMENTS_READY);
+    //this._notifyObservers(UpdateType.COMMENTS_READY);
 
   }
 
   addComment = async (updateType, commentObj, filmId) => {
     try {
       const response = await this.#apiService.addComment(commentObj, filmId);
-      const adaptedResponse = this.#adaptResponseToClient(response);
-      this.#commentsObjects = [...this.#commentsObjects, adaptedResponse];
-      this._notifyObservers(updateType, adaptedResponse);
+      this.#commentsObjects = response.comments.map((comment) => this.#adaptResponseToClient(comment));
+      /* const adaptedResponse = this.#adaptResponseToClient(response);
+      this.#commentsObjects = [...this.#commentsObjects, adaptedResponse]; */
+
+      //this._notifyObservers(updateType, this.#commentsObjects);
     } catch(err) {
       throw new Error('Can\'t add a new comment');
     }
@@ -67,6 +69,7 @@ export default class CommentsModel extends AbstractObservable {
       ...commentObj,
       date: new Date(commentObj.date)
     };
+
     return adaptedCommentObject;
   };
 }

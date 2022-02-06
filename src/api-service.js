@@ -65,7 +65,7 @@ export default class APIService {
   //постит 1 коммент на сервер
   addComment = async (commentObj, filmId) => {
     const response = await this.#load({
-      urlEnding: `movies/${filmId}`,
+      urlEnding: `comments/${filmId}`,
       method: 'POST',
       body: JSON.stringify(commentObj),
       headers: new Headers({'Content-Type': 'application/json'})

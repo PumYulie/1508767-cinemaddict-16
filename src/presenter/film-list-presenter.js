@@ -103,7 +103,11 @@ export default class FilmListPresenter {
     this.#filmComponent.setToFavoritesClickHandler(() => this.#handleToFavoritesClick(filmObject));
   }
 
-  #renderPopup = (filmObject, scrollYPosition) => {
+
+
+  #renderPopup = async (filmObject, scrollYPosition) => {
+
+    await this.#commentsModel.getCommentsForPopup(filmObject.id);
 
     if (this.#filmPopupComponent) {
       cutOffElement(this.#filmPopupComponent);
@@ -111,9 +115,11 @@ export default class FilmListPresenter {
       cutOffElement(this.#popupCommentsComponent);
     }
 
+
     this.#filmPopupComponent = new PopupView(filmObject);
     this.#popupId = this.#filmComponent.element.dataset.id;
     insertElement(this.#filmPopupComponent, this.#filmsListComponent, scrollYPosition);
+
 
     const containerForComments = this.#filmPopupComponent.element.querySelector('.film-details__inner');
     this.#popupCommentsComponent = new CommentsAndFormView(this.commentsObjects);
@@ -174,8 +180,7 @@ export default class FilmListPresenter {
         await this.#filmsModel.updateFilm(updateType, update);
         break;
       case UserAction.ADD_COMMENT:
-        //addComment(updateType, commentObj, filmId)
-        await this.#commentsModel.addComment(updateType, update);
+        await this.#commentsModel.addComment(updateType, update, this.#popupId);
         break;
       case UserAction.DELETE_COMMENT:
         //deleteComment (updateType, commentObj)
@@ -191,6 +196,9 @@ export default class FilmListPresenter {
 
 
   #onCommentSubmitKeyDown = (commentObj, popupYScroll) => {//аргументом объект с новым состоянием
+    //отпр запрос прошу создать комент
+
+    console.log(JSON.stringify(commentObj));
     this.#handleViewUserActions(
       UpdateType.PATCH,
       UserAction.ADD_COMMENT,

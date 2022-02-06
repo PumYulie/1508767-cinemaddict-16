@@ -1,6 +1,5 @@
 import SmartView from './smart-view.js';
 import {EMOJIS_NAMES} from '../mock/constants.js';
-import {generateComment} from '../mock/generate-comments-objects.js';
 import he from 'he';
 
 
@@ -109,7 +108,7 @@ export default class CommentsAndFormView extends SmartView {
     if (evt.target.tagName !== 'INPUT') {return;}
     evt.stopPropagation();
     this.popupYScroll = this.element.scrollTop;
-    this.updateStateAndRender({selectedEmoji: evt.target.value}, this.popupYScroll);
+    this.updateStateAndRender({selectedEmotion: evt.target.value}, this.popupYScroll);
   };
 
   #commentTextareaInputHandler = (evt) => {
@@ -127,10 +126,11 @@ export default class CommentsAndFormView extends SmartView {
   };
 
   #formSubmitHandler = (evt) => {
+    console.log('1');
     if ( !((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') ) {
       return;
     }
-    if (!this._state.selectedEmoji || !this._state.commentText) {
+    if (!this._state.selectedEmotion || !this._state.commentText) {
       return;
     }
     evt.stopPropagation();
@@ -141,14 +141,17 @@ export default class CommentsAndFormView extends SmartView {
       comment: this._state.commentText
     };
 
-    //сразу пользователю интерфейс меняю
+    /*     //сразу пользователю интерфейс меняю
     this.updateStateAndRender({
       ...this.#formInitialStateProps, //сброс редактируемых полей в состоянии
       comments: [...this._state.comments, commentFromForm], //припуш коммента
       commentsNumber: this._state.comments.length + 1
     }, this.popupYScroll);
-    //и уже след шагом отправляю новые данные в модель для апдейта модели
-    this._callback.commentSubmitHandler(CommentsAndFormView.parseStateToFilmObject(this._state), this.popupYScroll);
+    //и уже след шагом отправляю новые данные в модель для апдейта модели */
+
+    this._callback.commentSubmitHandler(commentFromForm, this.popupYScroll);
+
+/*     this._callback.commentSubmitHandler(CommentsAndFormView.parseStateToArray(this._state), this.popupYScroll); */
 
   };
 
@@ -173,7 +176,7 @@ export default class CommentsAndFormView extends SmartView {
     }, this.popupYScroll);
 
     //а затем отправляю данные в модель для актуализации данных модели
-    this._callback.deleteCommentHandler(PopupView.parseStateToFilmObject(this._state), this.popupYScroll);
+    this._callback.deleteCommentHandler(CommentsAndFormView.parseStateToArray(this._state), this.popupYScroll);
   };
 
 
