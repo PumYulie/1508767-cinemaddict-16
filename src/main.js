@@ -10,7 +10,7 @@ import Statistics from './view/statistics/statistics.js';
 import MenuView from './view/menu-view.js';
 import ApiService from './services/api-service.js';
 
-const AUTHORIZATION = 'Basic vkjbb6544dfbj40G';
+const AUTHORIZATION = 'Basic vk56uGfhg709fserT09gf';
 const END_POINT = 'https://16.ecmascript.pages.academy/cinemaddict';
 const siteMainElement = document.querySelector('.main');
 const siteFooterElement = document.querySelector('footer');
