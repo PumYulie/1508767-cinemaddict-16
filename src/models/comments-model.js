@@ -25,9 +25,8 @@ export default class CommentsModel extends AbstractObservable {
     } catch(err) {
       this.#commentsObjects = [];
     }
-    //console.log('2', this.#commentsObjects);
-    //!!!!!!!поправь UpdateType!!!!
-    //this._notifyObservers(UpdateType.COMMENTS_READY);
+
+    //this._notifyObservers(UpdateType.PATCH);
 
   }
 
@@ -35,8 +34,7 @@ export default class CommentsModel extends AbstractObservable {
     try {
       const response = await this.#apiService.addComment(commentObj, filmId);
       this.#commentsObjects = response.comments.map((comment) => this.#adaptResponseToClient(comment));
-      /* const adaptedResponse = this.#adaptResponseToClient(response);
-      this.#commentsObjects = [...this.#commentsObjects, adaptedResponse]; */
+      console.log(this.#commentsObjects);
 
       //this._notifyObservers(updateType, this.#commentsObjects);
     } catch(err) {

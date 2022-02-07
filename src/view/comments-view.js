@@ -63,11 +63,11 @@ const renderCommentsAndForm = (state) => {
 
 //на вход массив из комментариев под этот попап.
 export default class CommentsAndFormView extends SmartView {
-  #formInitialStateProps = null;
+  #formInitialState = null;
 
   constructor(commentsObjsArray) {
     super();
-    this.#formInitialStateProps = {
+    this.#formInitialState = {
       selectedEmotion: '',
       commentText: '',
       srollPosition: 0
@@ -78,7 +78,7 @@ export default class CommentsAndFormView extends SmartView {
         comments: commentsObjsArray,
         commentsNumber: commentsObjsArray.length
       },
-      this.#formInitialStateProps
+      this.#formInitialState
     );
 
     this.popupYScroll = null;
@@ -126,13 +126,8 @@ export default class CommentsAndFormView extends SmartView {
   };
 
   #formSubmitHandler = (evt) => {
-    console.log('1');
-    if ( !((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') ) {
-      return;
-    }
-    if (!this._state.selectedEmotion || !this._state.commentText) {
-      return;
-    }
+    if ( !((evt.metaKey || evt.ctrlKey) && evt.key === 'Enter') ) { return; }
+    if (!this._state.selectedEmotion || !this._state.commentText) { return; }
     evt.stopPropagation();
     this.popupYScroll = this.element.scrollTop;
 

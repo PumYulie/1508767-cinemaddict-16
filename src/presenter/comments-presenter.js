@@ -1,4 +1,4 @@
-import CommentsAndFormView from '../view/comments-view.js';
+/* import CommentsAndFormView from '../view/comments-view.js';
 import {UserAction, UpdateType} from '../mock/constants.js';
 
 export default class CommentsPresenter {
@@ -65,3 +65,4 @@ export default class CommentsPresenter {
   };
 
 }
+ */

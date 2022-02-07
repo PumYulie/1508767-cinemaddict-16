@@ -146,7 +146,7 @@ export default class FilmListPresenter {
     this.#popupCommentsComponent.setDeleteCommentClickHandler(this.#onDeleteCommentClick);
   };
 
-  // К О Л Б Э К   В   М О Д Е Л Ь  (в addObserver(here))
+  // К О Л Б Э К-ПОДПИСКА   В   М О Д Е Л Ь  (в addObserver(here))
   #handleModelEventComplete = (updateType, updatedFilmObject) => {
     switch (updateType) {
       case UpdateType.PATCH:
@@ -166,9 +166,6 @@ export default class FilmListPresenter {
         cutOffElement(this.#loadingComponent);
         this.#renderBoard();
         break;
-/*       case UpdateType.COMMENTS_READY: //comments-model получила коменты к фильму
-        this.#renderPopup();
-        break; */
     }
   };
 
