@@ -111,7 +111,7 @@ const createFilmPopupTemplate = (data, array) => {
               ${renderFilmDetailsTable('Country', country)}
               ${renderFilmDetailsTable(changeWord(genre, 'Genre'), renderElementGenre(genre).join(' '))}
             </table>
-           <p class="film-details__film-description">
+            <p class="film-details__film-description">
             ${description}
             </p>
           </div>
