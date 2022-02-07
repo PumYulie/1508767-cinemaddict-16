@@ -1,24 +1,21 @@
-import AbstractClassView from './abstract-class-view';
+import AbstractView from './abstract-view.js';
 
-const renderShowMoreButton = () => (
-  `<button class="films-list__show-more">
-    Show more
-  </button>`
+const createButtonShowMore = () => (
+  '<button class="films-list__show-more">Show more</button>'
 );
 
-export default class ShowMoreButtonView extends AbstractClassView {
-  get template() {
-    return renderShowMoreButton();
+export default class ShowMoreButtonView extends AbstractView {
+  get template(){
+    return createButtonShowMore();
   }
 
-  setOnClickhandler = (someCallback) => {
-    this._callback.showMoreButtonClick = someCallback; //создаю метод в объекте, тк это объект был
-    this.element.addEventListener('click', this.#onCLickHandler);
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.element.addEventListener('click', this.#clickHandler);
   }
 
-  #onCLickHandler = (evt) => {
+  #clickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.showMoreButtonClick();
+    this._callback.click();
   }
-
 }

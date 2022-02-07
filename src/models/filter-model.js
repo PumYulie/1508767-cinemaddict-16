@@ -1,16 +1,15 @@
-import AbstractObservable from './abstract-observable.js';
-import {FilterType} from '../mock/constants.js';
+import AbstractObservable from '../utils/abstract-observable.js';
+import {FilterType} from '../consts.js';
 
 export default class FilterModel extends AbstractObservable {
-  #currentFilter = FilterType.ALL_FILMS;
+  #filter = FilterType.ALL;
 
-  get currentFilter() {
-    return this.#currentFilter;
+  get filter() {
+    return this.#filter;
   }
 
-  setCurrentFilter = (updateType, currentFilter) => {
-    this.#currentFilter = currentFilter;
-
-    this._notifyObservers(updateType, this.#currentFilter);
+  setFilter = (updateType, filter) => {
+    this.#filter = filter;
+    this._notify(updateType, filter);
   }
 }

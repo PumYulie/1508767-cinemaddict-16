@@ -1,8 +1,7 @@
-import AbstractObservable from './abstract-observable.js';
-import {UpdateType} from '../mock/constants.js';
+import AbstractObservable from '../utils/abstract-observable.js';
 
 export default class CommentsModel extends AbstractObservable {
-  #commentsObjects = [];
+  #comments = [];
   #apiService = null;
 
   constructor(apiService) {
@@ -10,64 +9,43 @@ export default class CommentsModel extends AbstractObservable {
     this.#apiService = apiService;
   }
 
-  set commentsObjects(commentsObjs) {
-    this.#commentsObjects = [...commentsObjs];
+  set comments(comments) {
+    this.#comments = [...comments];
   }
 
-  get commentsObjects () {
-    return this.#commentsObjects;
+  get comments() {
+    return this.#comments;
   }
 
-  getCommentsForPopup = async (filmId) => {
+  addComment = async (updateType, update, filmID) => {
     try {
-      const responseWithComments = await this.#apiService.getCommentsObjects(filmId);
-      this.#commentsObjects = responseWithComments.map((comment) => this.#adaptResponseToClient(comment));
-    } catch(err) {
-      this.#commentsObjects = [];
-    }
-
-    //this._notifyObservers(UpdateType.PATCH);
-
-  }
-
-  addComment = async (updateType, commentObj, filmId) => {
-    try {
-      const response = await this.#apiService.addComment(commentObj, filmId);
-      this.#commentsObjects = response.comments.map((comment) => this.#adaptResponseToClient(comment));
-      console.log(this.#commentsObjects);
-
-      //this._notifyObservers(updateType, this.#commentsObjects);
-    } catch(err) {
-      throw new Error('Can\'t add a new comment');
-    }
-  };
-
-  deleteComment = async (updateType, commentObj) => {
-    const indexOfCommentToDelete = this.#commentsObjects.findIndex((comment) => comment.id === commentObj.id);
-
-    if (indexOfCommentToDelete === -1) {
-      throw new Error('Can\'t delete an unexisting comment');
-    }
-
-    try {
-      await this.#apiService.deleteComment(commentObj);
-      this.#commentsObjects = [
-        ...this.#commentsObjects(0, indexOfCommentToDelete),
-        ...this.#commentsObjects(indexOfCommentToDelete + 1)
+      const response = await this.#apiService.addComment(update, filmID);
+      this.#comments = [
+        response,
+        ...this.#comments,
       ];
-      this._notifyObservers(updateType);
-    } catch(err) {
-      throw new Error('Can\'t delete a comment');
+      this._notify(updateType, update);
+    } catch(error) {
+      throw new Error('Can\'t add comment');
     }
-  };
+  }
 
-  //получаю от сервера и обрабатываю перед рендерингом
-  #adaptResponseToClient = (commentObj) => {
-    const adaptedCommentObject = {
-      ...commentObj,
-      date: new Date(commentObj.date)
-    };
+  deleteComment = async (updateType, update) => {
+    const index = this.#comments.findIndex((comment) => comment.id === update.id);
 
-    return adaptedCommentObject;
-  };
+    if (index === -1) {
+      throw new Error('Can\'t delete unexisting comment');
+    }
+
+    try {
+      await this.#apiService.deleteComment(update);
+      this.#comments = [
+        ...this.#comments.slice(0, index),
+        ...this.#comments.slice(index + 1),
+      ];
+      this._notify(updateType);
+    } catch(error) {
+      throw new Error('Can\'t delete comment');
+    }
+  }
 }

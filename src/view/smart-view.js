@@ -1,33 +1,41 @@
-import AbstractClassView from './abstract-class-view.js';
+import AbstractView from './abstract-view.js';
 
-export default class SmartView extends AbstractClassView {
-  _state = {};
+export default class SmartView extends AbstractView {
+  constructor() {
+    super();
 
-  //только для textarea
-  updateStateNoRender = (updateObj) => {
-    if (!updateObj) { return; }
-    this._state = {...this._state, ...updateObj};
-  };
+    this._data = {};
+  }
 
-  //для всех действий, где интерфейс должен юзеру откликнуться визуальным изменением
-  updateStateAndRender = (updateObj, yScrollPosition) => {
-    if (!updateObj) {return;}
-    this._state = {...this._state, ...updateObj};
+  updateData = (update, justDataUpdating) => {
+    if (!update) {
+      return;
+    }
 
-    this.updateElement(yScrollPosition);
-  };
+    this._data = {...this._data, ...update};
 
-  updateElement = (yScrollPosition) => {
+    if (justDataUpdating) {
+      return;
+    }
+
+    this.updateElement();
+  }
+
+  updateElement = () => {
     const prevElement = this.element;
     const parent = prevElement.parentElement;
-    this.removeElement(); // this.element=null
-    const newElement = this.element;//рисую по this._state из .template()
+    const scrollPoint = prevElement.scrollTop;
+    this.removeElement();
+
+    const newElement = this.element;
+
     parent.replaceChild(newElement, prevElement);
-    newElement.scrollTop = yScrollPosition;
+    newElement.scrollTop = scrollPoint;
+
     this.restoreHandlers();
-  };
+  }
 
   restoreHandlers = () => {
-    throw new Error('Make restoreHandlers() specific to your class');
+    throw new Error('Abstract method not implemented: restoreHandlers');
   };
 }

@@ -1,16 +1,15 @@
-import AbstractClassView from './abstract-class-view';
+import AbstractView from './abstract-view.js';
 
-const renderLoadingHTML = () => (
+const createLoadingTemplate = () => (
   `<section class="films">
-    <section class="films-list">
-      <h2 class="films-list__title">Loading...</h2>
-    </section>
-  </section>`
+  <section class="films-list">
+    <h2 class="films-list__title">Loading...</h2>
+  </section>
+</section>`
 );
 
-
-export default class LoadingView extends AbstractClassView {
+export default class LoadingView extends AbstractView {
   get template() {
-    return renderLoadingHTML();
+    return createLoadingTemplate();
   }
 }
